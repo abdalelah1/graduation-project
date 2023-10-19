@@ -58,7 +58,7 @@ class Student (models.Model):
 class Course_History(models.Model):
     degree = models.CharField(max_length=50)
     student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)
-    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=False)
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
     universit_course = models.ForeignKey(University_Courses,on_delete=models.CASCADE,null=True)
 class Recommended_Course (models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,null=False)
