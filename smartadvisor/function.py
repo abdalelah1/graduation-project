@@ -77,6 +77,8 @@ def get_students_details(student_id):
     conditional_courses = []
     repeated_course_codes = []
     counter = 0
+    conditional_passed=[]
+    is_graduate = False
 
     try:
         student = Student.objects.get(university_ID=student_id)
@@ -87,10 +89,10 @@ def get_students_details(student_id):
     
     for course in all_student_courses:
         grade = letter_grade_to_numeric(course.degree)
-        credits = course.course.credit  # افترض أن هذا هو مكان تخزين عدد الساعات الائتمانية في كل مادة
+        credits = course.course.credit  
         course_code = course.course.code
         grades.append((grade,credits))
-         ####   
+        ###############################################   
         if letter_grade_to_numeric( course.degree )> 59:   
             completed_courses.append(course.course.code)
         elif letter_grade_to_numeric( course.degree ) < 50:
@@ -99,7 +101,22 @@ def get_students_details(student_id):
             conditional_courses.append(course.course.code)
     all_courses = allcourses()
     remaining_courses_for_student = RemainingCourses(all_courses, completed_courses)
-    return remaining_courses_for_student, completed_courses, conditional_courses, fail_courses
+    if float(student.GPA) >2.00 :
+        conditional_passed = set(remaining_courses_for_student) & set(conditional_courses)
+        remaining_courses_for_student = set(remaining_courses_for_student) - conditional_passed
+    return list(remaining_courses_for_student), completed_courses, conditional_courses, fail_courses
 
 
+def courses_with_remaining_students():
+    courses_map = {}  
+    
+    all_students = Student.objects.all()
+    
+    for student in all_students:
+        student_id = student.university_ID
+        remaining_courses_for_student, _, _, _ = get_students_details(student_id=student_id)
+        
+        courses_map[student_id] = remaining_courses_for_student
+        
+    return courses_map
 
