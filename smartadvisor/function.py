@@ -3,6 +3,7 @@ from collections import Counter
 
 def RemainingCourses(all_courses, completed_courses):
     all_courses_set = set(all_courses)
+    print("all_courses",all_courses)
     completed_courses_set = set(completed_courses)
     remaining_courses_set = all_courses_set - completed_courses_set
     remaining_courses = list(remaining_courses_set)
@@ -78,6 +79,8 @@ def get_students_details(student_id):
     repeated_course_codes = []
     counter = 0
     conditional_passed=[]
+    credits_completed=0
+    credits_conditional=0
     is_graduate = False
 
     try:
@@ -86,19 +89,26 @@ def get_students_details(student_id):
         return "Student not found"
     
     all_student_courses = Course_History.objects.filter(student=student)
-    
+    print(all_student_courses)
     for course in all_student_courses:
         grade = letter_grade_to_numeric(course.degree)
         credits = course.course.credit  
         course_code = course.course.code
+        print('the code ',type(course.course))
+        # uni_code = course.universit_course.code
         grades.append((grade,credits))
         ###############################################   
-        if letter_grade_to_numeric( course.degree )> 59:   
+        if letter_grade_to_numeric( course.degree )> 59:
+            credits_completed+=int(course.course.credit)
             completed_courses.append(course.course.code)
+            # completed_courses.append(uni_code)
         elif letter_grade_to_numeric( course.degree ) < 50:
             fail_courses.append(course.course.code)
+            # fail_courses.append(uni_code)
         else:
             conditional_courses.append(course.course.code)
+            # conditional_courses.append(uni_code)
+            credits_conditional+=int(course.course.credit)
     all_courses = allcourses()
     remaining_courses_for_student = RemainingCourses(all_courses, completed_courses)
     if float(student.GPA) >2.00 :
