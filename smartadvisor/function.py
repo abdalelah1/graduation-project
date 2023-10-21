@@ -92,23 +92,28 @@ def get_students_details(student_id):
     print(all_student_courses)
     for course in all_student_courses:
         grade = letter_grade_to_numeric(course.degree)
-        credits = course.course.credit  
-        course_code = course.course.code
-        print('the code ',type(course.course))
+        if course.course :
+            print('is it course ')
+            credits = course.course.credit  
+            course_code = course.course.code
+        else : 
+            print('is it univsersity course ')
+            credits = course.universit_course.credit  
+            course_code = course.universit_course.code
         # uni_code = course.universit_course.code
         grades.append((grade,credits))
         ###############################################   
         if letter_grade_to_numeric( course.degree )> 59:
-            credits_completed+=int(course.course.credit)
-            completed_courses.append(course.course.code)
+            credits_completed+=int(credits)
+            completed_courses.append(course_code)
             # completed_courses.append(uni_code)
         elif letter_grade_to_numeric( course.degree ) < 50:
-            fail_courses.append(course.course.code)
+            fail_courses.append(course_code)
             # fail_courses.append(uni_code)
         else:
-            conditional_courses.append(course.course.code)
+            conditional_courses.append(course_code)
             # conditional_courses.append(uni_code)
-            credits_conditional+=int(course.course.credit)
+            credits_conditional+=int(credits)
     all_courses = allcourses()
     remaining_courses_for_student = RemainingCourses(all_courses, completed_courses)
     if float(student.GPA) >2.00 :
@@ -119,7 +124,7 @@ def get_students_details(student_id):
 
 def courses_with_remaining_students():
     courses_map = {}  
-    
+
     all_students = Student.objects.all()
     
     for student in all_students:
