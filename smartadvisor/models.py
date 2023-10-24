@@ -47,7 +47,7 @@ class Course(models.Model):
     is_reuqired = models.BooleanField(default=True) #ساعات مسجلة
     major = models.ForeignKey(Major,on_delete=models.CASCADE,null=False)
     type = models.ForeignKey(Course_Type,on_delete=models.CASCADE,null=False)
-    preRequst =models.ManyToManyField('self',blank=True, symmetrical=False,null=True)
+    preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)
 
 
 

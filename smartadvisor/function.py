@@ -162,6 +162,7 @@ def count_students_per_course():
 
     return popular_courses, less_popular_courses , test_courses
 def split_course_counts_by_conditions():
+
     popular_courses, less_popular_courses , test_courses = count_students_per_course()
   
     # Define the conditions
@@ -210,3 +211,23 @@ def split_course_counts_by_conditions():
     print("course_College_not_required" , course_College_not_required)
     print("course_universite_required" , course_universite_required)
     print("course_university_not_required" , course_university_not_required)
+def check_prerequist(course_code , student_id): 
+    student = Student.objects.get(university_ID=student_id)
+    course = Course.objects.get(code=course_code)
+    prerequisites = course.preRequst.all()
+    missing_pre=[]
+    print ('prerequisites',prerequisites[0].code)
+    remaining_courses_for_student,completed_courses,conditional_courses ,fail_courses=get_students_details(student_id)
+    print('completed_courses',completed_courses)
+    
+    for pre in prerequisites :
+        if pre.code in completed_courses:
+            missing_pre=[]
+        else:
+             missing_pre.append(pre.code)
+            # قائمة بأسماء المواد التي لم ينجزها الطالب بنجاح
+    if missing_pre==[]:
+        return True
+    else :
+        return missing_pre
+    
