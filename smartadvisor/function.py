@@ -2,7 +2,7 @@ from .models import *
 from collections import Counter
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
-
+import copy
 def RemainingCourses(all_courses, completed_courses):
     all_courses_set = set(all_courses)
 
@@ -40,32 +40,7 @@ def letter_grade_to_numeric(grade):
     else :
         
         return 0
-def calculate_gpa(grades):
-    gpa_scale = {
-        60: 2.0,
-        65: 2.25,
-        70: 2.5,
-        75: 2.75,
-        80: 3.0,
-        85: 3.25,
-        90: 3.5,
-        95: 3.75,
-        98: 4.0
-    }
 
-    total_points = 0.0
-    total_credits = 0.0
-
-    for grade, credits in grades:
-
-        gpa = gpa_scale.get(grade, 0) 
-
-        total_points += float(gpa) * float(credits)
-        total_credits += float(credits)
-    if total_credits == 0:
-        return 0 
-    gpa = total_points / total_credits
-    return gpa
 def allcourses():
     courses = Course.objects.all()
     university_courses = University_Courses.objects.all()
@@ -74,15 +49,13 @@ def allcourses():
 def get_students_details(student_id):
     completed_courses = []
     fail_courses = []
-    grades = [] 
     conditional_courses = []
-    repeated_course_codes = []
-    counter = 0
-    conditional_passed=[]
+    
     credits_completed=0
     credits_conditional=0
     is_graduate = False
-
+    fail_passed=[]
+    conditional_passed2=[]
     try:
         student = Student.objects.get(university_ID=student_id)
     except Student.DoesNotExist:
@@ -101,7 +74,6 @@ def get_students_details(student_id):
             credits = course.universit_course.credit  
             course_code = course.universit_course.code
         # uni_code = course.universit_course.code
-        grades.append((grade,credits))
         ###############################################   
         if letter_grade_to_numeric( course.degree )> 59:
             credits_completed+=int(credits)
@@ -116,10 +88,18 @@ def get_students_details(student_id):
             credits_conditional+=int(credits)
     all_courses = allcourses()
     remaining_courses_for_student = RemainingCourses(all_courses, completed_courses)
+    for course in fail_courses:
+        if course in completed_courses:
+            fail_courses.remove(course)
+            fail_passed.append(course)
+    for course in conditional_courses:
+        if course in completed_courses:
+            conditional_courses.remove(course)
     if float(student.GPA) >2.00 :
         conditional_passed = set(remaining_courses_for_student) & set(conditional_courses)
         remaining_courses_for_student = set(remaining_courses_for_student) - conditional_passed
-    return list(remaining_courses_for_student), completed_courses, conditional_courses, fail_courses
+    print('completed_courses',len(completed_courses))
+    return list(remaining_courses_for_student),set( completed_courses), set(conditional_courses), set(fail_courses,fail_passed)
 def courses_with_remaining_students():
     courses_map = {}  
 
@@ -127,7 +107,7 @@ def courses_with_remaining_students():
     
     for student in all_students:
         student_id = student.university_ID
-        remaining_courses_for_student, _, _, _ = get_students_details(student_id=student_id)
+        remaining_courses_for_student, _, _, _ ,_= get_students_details(student_id=student_id)
         
         courses_map[student_id] = remaining_courses_for_student
         
@@ -214,7 +194,7 @@ def check_prerequist(course_code , student_id):
     course = Course.objects.get(code=course_code)
     prerequisites = course.preRequst.all()
     missing_pre=[]
-    remaining_courses_for_student,completed_courses,conditional_courses ,fail_courses=get_students_details(student_id) 
+    remaining_courses_for_student,completed_courses,conditional_courses ,fail_courses,_=get_students_details(student_id) 
     for pre in prerequisites :
         if pre.code in completed_courses:
             missing_pre=[]
@@ -242,13 +222,13 @@ def get_graduted_student():
     graduated_student={}
     students=Student.objects.all()
     for student in students :
-        _,completed_courses,_,_=get_students_details(student_id=student.university_ID)
+        _,completed_courses,_,_,_=get_students_details(student_id=student.university_ID)
         print(student.major.department.full_courses_count ,'-',student.Hours_count ,'=<',student.major.department.no_hourse_Tobe_graduated)
         if int(student.major.department.full_courses_count ) - int(student.Hours_count) <=int(student.major.department.no_hourse_Tobe_graduated):
             print(True)
             graduated_student[student.university_ID]=int(student.major.department.full_courses_count ) - int(student.Hours_count) 
     print(graduated_student)
-def calculate_completed_credits(list_of_courses): 
+def calculate_credits(list_of_courses): 
     course=None
     counter=0
     for code in list_of_courses:
@@ -260,3 +240,42 @@ def calculate_completed_credits(list_of_courses):
             counter += int(course.credit)
     return counter
     
+def calculate_gpa(student_id):
+    student = Student.objects.get(university_ID=student_id)
+    remaining_courses_for_student, completed_courses, conditional_courses, fail_courses,fail_passed=get_students_details(student_id)
+    completed_courses_credits = calculate_credits(completed_courses)
+    conditional_courses_credits=calculate_credits(conditional_courses)
+    fail_courses_credit=calculate_credits(fail_courses)
+    print('completed_courses_credits',completed_courses_credits)
+    print('conditional_courses_credits',conditional_courses_credits)
+    print('fail_courses_credit',fail_courses_credit)
+    print('fail_passed',fail_passed)
+    full_credits=completed_courses_credits+conditional_courses_credits +fail_courses_credit
+    print(full_credits)
+
+    
+    gpa_scale = {
+        60: 2.0,
+        65: 2.25,
+        70: 2.5,
+        75: 2.75,
+        80: 3.0,
+        85: 3.25,
+        90: 3.5,
+        95: 3.75,
+        98: 4.0
+    }
+
+    total_points = 0.0
+    total_credits = 0.0
+
+    # for grade, credits in grades:
+
+    #     gpa = gpa_scale.get(grade, 0) 
+
+    #     total_points += float(gpa) * float(credits)
+    #     total_credits += float(credits)
+    # if total_credits == 0:
+    #     return 0 
+    # gpa = total_points / total_credits
+    # return gpa
