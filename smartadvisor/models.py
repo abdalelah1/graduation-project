@@ -5,8 +5,11 @@ from django.db import models
 # Create your models here.
 from django.contrib.auth.models import User
 from datetime import date,datetime
+class semester_name(models.Model):
+    name=models.CharField(max_length=10)
 class Level (models.Model):
     level =models.CharField(max_length=50)
+    semester_name=models.ForeignKey(semester_name,on_delete=models.CASCADE,null=True)
 class University( models.Model):
     name =models.CharField(max_length=50)
     no_university_courses_required = models.IntegerField()
@@ -17,6 +20,7 @@ class University_Courses (models.Model):
     level = models.ForeignKey(Level,on_delete=models.CASCADE,null=False)
     credit = models.CharField(max_length=10)
     is_reuqired = models.BooleanField(default=True)
+    hours_condition= models.IntegerField(null=True,default=0)
 
 class College(models.Model):
     name =models.CharField(max_length=50)
@@ -47,14 +51,17 @@ class Course(models.Model):
     is_reuqired = models.BooleanField(default=True) #ساعات مسجلة
     major = models.ForeignKey(Major,on_delete=models.CASCADE,null=False)
     type = models.ForeignKey(Course_Type,on_delete=models.CASCADE,null=False)
+    hours_condition= models.IntegerField(null=True,default=0)
     preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)
 
 
 
 class Student (models.Model):
     university_ID=models.CharField(max_length=50)
+    major=models.ForeignKey(Major,on_delete=models.CASCADE,null=True)
     GPA = models.CharField(max_length=50)
     level = models.ForeignKey(Level , on_delete=models.CASCADE,null=False)
+    Hours_count= models.IntegerField(null=True)
 class Course_History(models.Model):
     degree = models.CharField(max_length=50)
     student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)

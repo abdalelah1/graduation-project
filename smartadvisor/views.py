@@ -9,6 +9,8 @@ def test(request):
    courses_map=courses_with_remaining_students()   
    split_course_counts_by_conditions()
    ispassedallprerequist= check_prerequist('ENIT4314','201910602')
+   course_with_level(1)
+   get_graduted_student()
    
    
    return JsonResponse({'remaining_courses_for_student ':remaining_courses_for_student,
@@ -19,4 +21,5 @@ def test(request):
                          'if is passed :':ispassedallprerequist
 
                         })
-   
+
+

@@ -1,6 +1,7 @@
 from .models import *
 from collections import Counter
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 
 def RemainingCourses(all_courses, completed_courses):
     all_courses_set = set(all_courses)
@@ -70,7 +71,6 @@ def allcourses():
     university_courses = University_Courses.objects.all()
     list_of_courses = [course.code for course in courses] + [u_course.code for u_course in university_courses]
     return list_of_courses
-
 def get_students_details(student_id):
     completed_courses = []
     fail_courses = []
@@ -120,8 +120,6 @@ def get_students_details(student_id):
         conditional_passed = set(remaining_courses_for_student) & set(conditional_courses)
         remaining_courses_for_student = set(remaining_courses_for_student) - conditional_passed
     return list(remaining_courses_for_student), completed_courses, conditional_courses, fail_courses
-
-
 def courses_with_remaining_students():
     courses_map = {}  
 
@@ -216,10 +214,7 @@ def check_prerequist(course_code , student_id):
     course = Course.objects.get(code=course_code)
     prerequisites = course.preRequst.all()
     missing_pre=[]
-    print ('prerequisites',prerequisites[0].code)
-    remaining_courses_for_student,completed_courses,conditional_courses ,fail_courses=get_students_details(student_id)
-    print('completed_courses',completed_courses)
-    
+    remaining_courses_for_student,completed_courses,conditional_courses ,fail_courses=get_students_details(student_id) 
     for pre in prerequisites :
         if pre.code in completed_courses:
             missing_pre=[]
@@ -230,4 +225,38 @@ def check_prerequist(course_code , student_id):
         return True
     else :
         return missing_pre
+def course_with_level(semester):
+    levels = Level.objects.filter(semester_name=semester)
+    courses_with_levels={}
+    university_courses_with_levels={}
+    for level in levels :
+        condition1= Q(level=level)
+        condition2= Q(is_reuqired=True)
+        conditions=condition1 & condition2
+        course=Course.objects.filter(conditions)
+        university_Courses=University_Courses.objects.filter(conditions)
+        university_courses_with_levels[level.level]=[c.code for c in university_Courses]
+        courses_with_levels[level.level]=[c.code for c in course]
+    return courses_with_levels , university_courses_with_levels
+def get_graduted_student():
+    graduated_student={}
+    students=Student.objects.all()
+    for student in students :
+        _,completed_courses,_,_=get_students_details(student_id=student.university_ID)
+        print(student.major.department.full_courses_count ,'-',student.Hours_count ,'=<',student.major.department.no_hourse_Tobe_graduated)
+        if int(student.major.department.full_courses_count ) - int(student.Hours_count) <=int(student.major.department.no_hourse_Tobe_graduated):
+            print(True)
+            graduated_student[student.university_ID]=int(student.major.department.full_courses_count ) - int(student.Hours_count) 
+    print(graduated_student)
+def calculate_completed_credits(list_of_courses): 
+    course=None
+    counter=0
+    for code in list_of_courses:
+        try:
+            course= Course.objects.get(code=code)
+            counter += int(course.credit)
+        except :
+            course=University_Courses.objects.get(code=code)
+            counter += int(course.credit)
+    return counter
     

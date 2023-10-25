@@ -1,4 +1,4 @@
 from .function import *
-def recommendation_course(student_id,semister):
-    remaining_courses_for_student, completed_courses, conditional_courses, fail_courses=get_students_details(student_id)
-    return get_students_details
+def recommendation_course(semester):
+    required_course_with_level,required_University_course_with_level=course_with_level(semester)
+    
