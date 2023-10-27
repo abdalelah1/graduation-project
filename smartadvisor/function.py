@@ -162,25 +162,23 @@ def get_students_details(student_id):
         optional_map['elective']=(elective_complete, {'remaining ':number_elective- len(elective_complete),
                                                       'remaining_course':elective_remaining
                                                       })
-    print(student_id)
-    print ('college_optional_passsed',college_optional_passsed)
-    print ('universite_optional_passed',universite_optional_passed)
-    print ('elective_complete',elective_complete)
+
     return list(remaining_courses_for_student),set( completed_courses), set(conditional_courses), set(fail_courses) , set(fail_passed),optional_map
 def courses_with_remaining_students():
     courses_map = {}  
+    optinal_map={}
 
     all_students = Student.objects.all()
     
     for student in all_students:
         student_id = student.university_ID
-        remaining_courses_for_student, _, _, _ ,_,_= get_students_details(student_id=student_id)
+        remaining_courses_for_student, _, _, _ ,_,optional= get_students_details(student_id=student_id)
         
         courses_map[student_id] = remaining_courses_for_student
-        
-    return courses_map
+        optinal_map[student_id]=optional
+    return courses_map,optinal_map
 def count_students_per_course():
-    courses_map = courses_with_remaining_students()
+    courses_map,_ = courses_with_remaining_students()
     course_counts = Counter()
 
     # Count the number of students for each course
@@ -190,13 +188,12 @@ def count_students_per_course():
 
     # Create a dictionary to store the result
     course_data = {}
-
     # Group the data by course ID
     for student_id, course_code in courses_map.items():
         for course in course_code:
             if course in course_data:
-                course_data[course][1].append(student_id)
-                course_data[course][2] += 1
+                course_data[course][0].append(student_id)
+                course_data[course][1] += 1
             else:
                 course_data[course] = [[student_id], 20]
 
@@ -215,13 +212,13 @@ def count_students_per_course():
     # حذف العناصر المحددة
     for key in keys_to_delete:
         del test_courses[key]
-
-
+ 
     return popular_courses, less_popular_courses , test_courses
 def split_course_counts_by_conditions():
 
     popular_courses, less_popular_courses , test_courses = count_students_per_course()
-  
+    for code  in test_courses:
+        print(test_courses[code])
     # Define the conditions
     course_College_required = []
     course_College_not_required = []
@@ -230,7 +227,7 @@ def split_course_counts_by_conditions():
     course_universite_required = []
     course_university_not_required = []    
     course = None
-    for course_code, student_id, count in test_courses:
+    for course_code in test_courses:
         try: 
             course = Course.objects.get(code=course_code)
             print(course.name, course.code,course.is_reuqired , course.type.id )
@@ -383,12 +380,9 @@ def calculate_gpa(student_id):
     print("full gpa is :", gpa)
     return rounded_gpa
 
-     
- 
-
 def assign_course_priorities():
     graduated_student_ids = get_graduted_student()
-    remaining_courses_map = courses_with_remaining_students()
+    remaining_courses_map,_ = courses_with_remaining_students()
 
     course_priorities = {
         "1": {}
@@ -408,11 +402,35 @@ def assign_course_priorities():
         for course, student_list in courses.items():
             student_count = len(student_list)
             courses[course] = (student_list, student_count)
-
-    
-   
     return modified_data
-
+def course_with_count_same_level_or_above(test_courses):
+    print(test_courses)
+    same_level={}
+    less_level ={}
+    course_level_greater_than_student={}
+    
+    for course_code, course_info in test_courses.items():
+        course = None
+        try:
+            course = Course.objects.get(code=course_code)
+        except:
+            course = University_Courses.objects.get(code=course_code)
+        for university_id in course_info[0]:
+            student = Student.objects.get(university_ID=university_id)
+            if int(course.level.id) ==int(student.level.id):
+                same_level[course_code]=course_info
+            elif int(course.level.id) <int(student.level.id):
+                less_level[course_code] = course_info
+            else :   
+                course_level_greater_than_student[course_code]=course_info
+                
+               
+    print('test_courses from check',same_level)
+    print('less level ', less_level)
+    print('course_level_greater_than_student',course_level_greater_than_student)
+    return same_level , less_level , course_level_greater_than_student
+    
+    
 def calculate_gpa_directly(student_id, completed_courses, conditional_courses, fail_courses):
     highest_degree = {}
     course_credits = {}
