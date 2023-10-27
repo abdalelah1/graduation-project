@@ -24,7 +24,8 @@ class University_Courses (models.Model):
 
 class College(models.Model):
     name =models.CharField(max_length=50)
-    university = models.ForeignKey(University,on_delete=models.CASCADE,null=False)
+    number_of_required_optional_course = models.IntegerField(default=2)
+    university= models.ForeignKey(University,on_delete=models.CASCADE,null=True)
 class Admin (models.Model):
     name = models.CharField(max_length=100)
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=False)
