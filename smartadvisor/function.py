@@ -266,8 +266,13 @@ def split_course_counts_by_conditions():
     print("course_universite_required" , course_universite_required)
     print("course_university_not_required" , course_university_not_required)
 def check_prerequist(course_code , student_id): 
+    course =None
     student = Student.objects.get(university_ID=student_id)
-    course = Course.objects.get(code=course_code)
+    try  : 
+        course = Course.objects.get(code=course_code)
+    except : 
+        course = University_Courses.objects.get(code= course_code)
+    
     prerequisites = course.preRequst.all()
     missing_pre=[]
     remaining_courses_for_student,completed_courses,conditional_courses ,fail_courses,_,_=get_students_details(student_id) 
@@ -283,17 +288,30 @@ def check_prerequist(course_code , student_id):
         return missing_pre
 def course_with_level(semester):
     levels = Level.objects.filter(semester_name=semester)
-    courses_with_levels={}
-    university_courses_with_levels={}
-    for level in levels :
-        condition1= Q(level=level)
-        condition2= Q(is_reuqired=True)
-        conditions=condition1 & condition2
-        course=Course.objects.filter(conditions)
-        university_Courses=University_Courses.objects.filter(conditions)
-        university_courses_with_levels[level.level]=[c.code for c in university_Courses]
-        courses_with_levels[level.level]=[c.code for c in course]
-    return courses_with_levels , university_courses_with_levels
+    courses_with_levels = {}
+    university_courses_with_levels = {}
+    combine_map = {}
+
+    for level in levels:
+        condition1 = Q(level=level)
+        condition2 = Q(is_reuqired=True)
+        conditions = condition1 & condition2
+        course = Course.objects.filter(conditions)
+        university_courses = University_Courses.objects.filter(conditions)
+
+        # Get the lists of course codes
+        university_courses_list = [c.code for c in university_courses]
+        courses_list = [c.code for c in course]
+
+        # Combine both lists into a single list
+        combined_courses_list = university_courses_list + courses_list
+
+        # Store the combined list for this level
+        courses_with_levels[level.level] = combined_courses_list
+
+        # Create a map with course codes as keys and their level as values
+        combine_map[level.level]=[c for c in combined_courses_list]
+    return courses_with_levels, university_courses_with_levels, combine_map
 def get_graduted_student():
     graduated_student={}
     students=Student.objects.all()
@@ -404,7 +422,6 @@ def assign_course_priorities():
             courses[course] = (student_list, student_count)
     return modified_data
 def course_with_count_same_level_or_above(test_courses):
-    print(test_courses)
     same_level={}
     less_level ={}
     course_level_greater_than_student={}
@@ -417,20 +434,93 @@ def course_with_count_same_level_or_above(test_courses):
             course = University_Courses.objects.get(code=course_code)
         for university_id in course_info[0]:
             student = Student.objects.get(university_ID=university_id)
-            if int(course.level.id) ==int(student.level.id):
+            if int(course.level.id) ==int(student.level.id) and check_if_passed(course.code,student.university_ID) and int(student.Hours_count) >= int(course.hours_condition) :
                 same_level[course_code]=course_info
+                course_info[1]=len(course_info[0])
             elif int(course.level.id) <int(student.level.id):
                 less_level[course_code] = course_info
+
             else :   
                 course_level_greater_than_student[course_code]=course_info
-                
-               
-    print('test_courses from check',same_level)
-    print('less level ', less_level)
-    print('course_level_greater_than_student',course_level_greater_than_student)
     return same_level , less_level , course_level_greater_than_student
+def number_of_student_per_course(code):
+    course = None
+    try:
+            course = Course.objects.get(code=code)
+    except:
+            course = University_Courses.objects.get(code=code)
+    students = Student.objects.all()
+    counter = 0
+
+    map ={}
+    student_passed=[]
+    for student in students: 
+        if check_prerequist(code,student.university_ID) and check_if_passed(code,student.university_ID) and int(student.Hours_count) >= int(course.hours_condition) :
+            student_passed.append(student.university_ID)
+            counter = counter+1
     
-    
+    return [student_passed,counter ]
+def check_if_passed(code, student_id):
+    remaining_courses_for_student,_,_,_,_,_=get_students_details(student_id)
+    if code  in remaining_courses_for_student:
+        return True 
+    else : 
+        False
+def check_course_state(code , student_id):
+    _,_,conditional_courses,fail_courses,_,_=get_students_details(student_id)
+
+    if code  in fail_courses:
+        return 'f'
+    elif  code  in conditional_courses :
+        return 'd'
+    else : return 'c' 
+def number_of_student_per_fail_course (code):
+    course = None
+    try:
+            course = Course.objects.get(code=code)
+    except:
+            course = University_Courses.objects.get(code=code)
+    students = Student.objects.all()
+    counter = 0
+    cond_counter = 0
+    student_cond = []
+    map ={}
+    student_fail=[]
+    for student in students: 
+        if  check_course_state(code,student.university_ID)=='f'  :
+            student_fail.append(student.university_ID)
+            counter = counter+1
+        elif check_course_state(code,student.university_ID) =='d' and float(student.GPA)<= 2 :
+            student_cond.append(code)
+            cond_counter = cond_counter+1
+    return [student_fail,counter ] , [student_cond,cond_counter]
+def course_with_count(semester):
+    course_with_count={}
+    students = Student.objects.all()
+    max_priority=assign_course_priorities() 
+    courses_with_levels , university_courses_with_levels,_=course_with_level(semester)
+    list_of_course_on_this_semester = []
+    for key in courses_with_levels:
+        for course in courses_with_levels[key]:
+         list_of_course_on_this_semester.append(course)
+    for course in list_of_course_on_this_semester:
+       
+       course_with_count[course]=(number_of_student_per_course(course))
+    return course_with_count
+def fail_course_with_count(semester):
+    course_with_count={}    
+    cond_course={}
+    students = Student.objects.all()
+    courses_with_levels , _,_=course_with_level(semester)
+    list_of_course_on_this_semester = []
+    for key in courses_with_levels:
+        for course in courses_with_levels[key]:
+         list_of_course_on_this_semester.append(course)
+    for course in list_of_course_on_this_semester:
+       
+       course_with_count[course]=(number_of_student_per_fail_course(course)[0])
+       cond_course[course]=(number_of_student_per_fail_course(course)[1])
+    return course_with_count , cond_course
 def calculate_gpa_directly(student_id, completed_courses, conditional_courses, fail_courses):
     highest_degree = {}
     course_credits = {}

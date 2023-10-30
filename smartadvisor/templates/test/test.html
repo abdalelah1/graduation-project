@@ -1,0 +1,29 @@
+<html>
+<head>
+    <title>تقرير الطلاب</title>
+</head>
+<body>
+    <h1>تقرير الطلاب</h1>
+    {% for level, data in combined_data.items %}
+    <h2>الليفل {{ level }}</h2>
+    <table>
+        
+        <tr>
+            <th>code</th>
+            <th>العدد الكلي</th>
+            <th>عدد الراسبين</th>
+            <th>عدد الشرطي</th>
+            <th>عدد نفس المستوى</th>
+        </tr>
+        {% for code, data1 in data.items %}
+                <tr>
+                    <td>{{code}}</td>
+                    {% for name, info in data1.items %}
+                    <td>{{info.1}}</td>
+                    {%endfor%}
+                </tr>
+                {%endfor%}
+    </table>
+    {% endfor %}
+</body>
+</html>

@@ -21,6 +21,7 @@ class University_Courses (models.Model):
     credit = models.CharField(max_length=10)
     is_reuqired = models.BooleanField(default=True)
     hours_condition= models.IntegerField(null=True,default=0)
+    preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)
 
 class College(models.Model):
     name =models.CharField(max_length=50)
@@ -55,8 +56,6 @@ class Course(models.Model):
     hours_condition= models.IntegerField(null=True,default=0)
     preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)
 
-
-
 class Student (models.Model):
     university_ID=models.CharField(max_length=50)
     major=models.ForeignKey(Major,on_delete=models.CASCADE,null=True)
@@ -72,5 +71,3 @@ class Recommended_Course (models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,null=False)
     student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)
     no_student = models.IntegerField()
-
-

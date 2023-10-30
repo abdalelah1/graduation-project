@@ -1,10 +1,21 @@
 from .function import *
 def recommendation_course(semester):
-    students = Student.objects.all()
-    max_priority=assign_course_priorities() 
-    course_on_this_semester=course_with_level(semester)
-    popular_courses, less_popular_courses , test_courses=count_students_per_course()
-    course_with_count_same_level_or_above(test_courses)
-  
-    for student in students :
-        _,_,_,_,_,_=get_students_details(student.university_ID)
+    combined_map = {}
+    full_count=course_with_count(semester)
+    _,_,combine_map=course_with_level(semester)
+    fail , condition=fail_course_with_count(semester)
+    same_level , less_level , course_level_greater_than_student=course_with_count_same_level_or_above(course_with_count(semester))
+    for level, courses in combine_map.items():
+        combined_map[level] = {}  # إنشاء قاموس فرعي لكل ليفل
+        for course_code in courses:
+            combined_map[level][course_code] = {
+                'full_count': full_count.get(course_code, [[], 0]),
+                'fail': fail.get(course_code, [[], 0]),
+                'condition': condition.get(course_code, [[], 0]),
+                'same_level': same_level.get(course_code, [[], 0]),
+        }
+    
+    
+    return combined_map 
+
+    

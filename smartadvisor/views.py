@@ -6,7 +6,5 @@ from django.http import JsonResponse
 
 # Create your views here.
 def test(request):
-    recommendation_course(1)
-    return JsonResponse({
-    })
-
+    combined_data =recommendation_course(1)
+    return render(request, 'test/test.html', {'combined_data': combined_data})
