@@ -1,29 +1,33 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>تقرير الطلاب</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Map</title>
 </head>
 <body>
-    <h1>تقرير الطلاب</h1>
-    {% for level, data in combined_data.items %}
-    <h2>الليفل {{ level }}</h2>
-    <table>
-        
+    <h1>Final Map</h1>
+
+    <table border="1">
         <tr>
-            <th>code</th>
-            <th>العدد الكلي</th>
-            <th>عدد الراسبين</th>
-            <th>عدد الشرطي</th>
-            <th>عدد نفس المستوى</th>
+            <th>Course Code</th>
+            <th>Fail Count</th>
+            <th>Conditional Count</th>
+            <th>Graduated Count</th>
+            <th>Same Level Count</th>
+            <th>Total Students Count</th>
         </tr>
-        {% for code, data1 in data.items %}
-                <tr>
-                    <td>{{code}}</td>
-                    {% for name, info in data1.items %}
-                    <td>{{info.1}}</td>
-                    {%endfor%}
-                </tr>
-                {%endfor%}
+
+        {% for course, data in final_map.items %}
+            <tr>
+                <td>{{ course.code }}</td>
+                <td>{{ data.fault|length }}</td>
+                <td>{{ data.condition|length }}</td>
+                <td>{{ data.graduate|length }}</td>
+                <td>{{ data.same_level|length }}</td>
+                <td>{{ data.students|length }}</td>
+            </tr>
+        {% endfor %}
     </table>
-    {% endfor %}
 </body>
 </html>

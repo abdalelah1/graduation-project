@@ -2,7 +2,13 @@ from .models import *
 from collections import Counter
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from collections import defaultdict
 import copy
+from itertools import chain
+
+import pymongo
+from pymongo import MongoClient
+import pandas as pd 
 def RemainingCourses(all_courses, completed_courses):
     all_courses_set = set(all_courses)
     completed_courses_set = set(completed_courses)
@@ -19,7 +25,6 @@ def letter_grade_to_numeric(grade):
         return 90
     elif grade == 'B+':
         return 85
-    
     elif grade == 'B':
         return 80
     elif grade == 'B-':
@@ -36,6 +41,8 @@ def letter_grade_to_numeric(grade):
         return 50
     elif grade== 'F' :
         return 0
+    elif grade =='W':
+        return 'W'
     else :
         
         return 0
@@ -61,7 +68,7 @@ def get_students_details(student_id):
     elective_remaining =[]
     university_optional_remaining=[]
     college_optional_remaining=[]
-    
+    drag_courses = []
     
     optional_map={
         'college':'',
@@ -77,9 +84,7 @@ def get_students_details(student_id):
     number_college_un_required=int(student.major.department.college.number_of_required_optional_course)
     number_university_un_required = int (student.major.department.college.university.no_university_courses_required)
     all_student_courses = Course_History.objects.filter(student=student)
-
     for course in all_student_courses:
-        grade = letter_grade_to_numeric(course.degree)
         if course.course :
           
             credits = course.course.credit  
@@ -90,19 +95,21 @@ def get_students_details(student_id):
             course_code = course.universit_course.code
         # uni_code = course.universit_course.code
         ###############################################   
-        if letter_grade_to_numeric( course.degree )> 59:
+        if course.degree == 'W':
+            drag_courses.append(course_code)
+        elif letter_grade_to_numeric( course.degree )> 59:
             credits_completed+=int(credits)
             completed_courses.append(course_code)
             # completed_courses.append(uni_code)
         elif letter_grade_to_numeric( course.degree ) < 50:
             fail_courses.append(course_code)
-            # fail_courses.append(uni_code)
+            # fail_courses.append()
         else:
             conditional_courses.append(course_code)
             # conditional_courses.append(uni_code)
             credits_conditional+=int(credits)
     all_courses = allcourses()
-    remaining_courses_for_student = RemainingCourses(all_courses, completed_courses)
+    remaining_courses_for_student = RemainingCourses(all_courses, completed_courses) +drag_courses
         
     for course in fail_courses:
         if course in completed_courses:
@@ -217,8 +224,7 @@ def count_students_per_course():
 def split_course_counts_by_conditions():
 
     popular_courses, less_popular_courses , test_courses = count_students_per_course()
-    for code  in test_courses:
-        print(test_courses[code])
+
     # Define the conditions
     course_College_required = []
     course_College_not_required = []
@@ -230,7 +236,6 @@ def split_course_counts_by_conditions():
     for course_code in test_courses:
         try: 
             course = Course.objects.get(code=course_code)
-            print(course.name, course.code,course.is_reuqired , course.type.id )
             course_type = course.type.id
             is_required = course.is_reuqired  
 
@@ -259,13 +264,9 @@ def split_course_counts_by_conditions():
                 course_universite_required.append((student_id, course_code, count))
             else :
                 course_university_not_required.append((student_id, course_code, count))
-    print("course_major_required" , course_major_required)
-    print("course_major_not_required" , course_major_not_required)
-    print("course_College_required" , course_College_required)
-    print("course_College_not_required" , course_College_not_required)
-    print("course_universite_required" , course_universite_required)
-    print("course_university_not_required" , course_university_not_required)
+    
 def check_prerequist(course_code , student_id): 
+
     course =None
     student = Student.objects.get(university_ID=student_id)
     try  : 
@@ -291,13 +292,18 @@ def course_with_level(semester):
     courses_with_levels = {}
     university_courses_with_levels = {}
     combine_map = {}
-
+    courses =Course.objects.filter(level__in=levels,is_reuqired=True)
+    uni_courses =University_Courses.objects.filter(level__in=levels,is_reuqired=True)
+    all_courses = list(chain(courses, uni_courses))
+    print()
+    print('all_courses',all_courses)
     for level in levels:
         condition1 = Q(level=level)
         condition2 = Q(is_reuqired=True)
         conditions = condition1 & condition2
         course = Course.objects.filter(conditions)
         university_courses = University_Courses.objects.filter(conditions)
+        
 
         # Get the lists of course codes
         university_courses_list = [c.code for c in university_courses]
@@ -314,15 +320,15 @@ def course_with_level(semester):
     return courses_with_levels, university_courses_with_levels, combine_map
 def get_graduted_student():
     graduated_student={}
-    students=Student.objects.all()
+    list_of_studnet=[]
+    students=Student.objects.filter()
     for student in students :
-        _,completed_courses,_,_,_,_=get_students_details(student_id=student.university_ID)
-        print(student.major.department.full_courses_count ,'-',student.Hours_count ,'=<',student.major.department.no_hourse_Tobe_graduated)
         if int(student.major.department.full_courses_count ) - int(student.Hours_count) <=int(student.major.department.no_hourse_Tobe_graduated):
-            print(True)
             graduated_student[student.university_ID]=int(student.major.department.full_courses_count ) - int(student.Hours_count) 
-    print('graduated_student',graduated_student)
-    return graduated_student
+            list_of_studnet.append(student)
+    return graduated_student,list_of_studnet
+
+
 def calculate_credits(list_of_courses): 
     course=None
     counter=0
@@ -381,7 +387,6 @@ def calculate_gpa(student_id):
         95: 3.75,
         98: 4.0
     }
-    print(course_credits    )
     for course_code in completed_courses.union(conditional_courses):
         degree_numeric = highest_degree[course_code]
         credits = course_credits[course_code]
@@ -394,13 +399,14 @@ def calculate_gpa(student_id):
 
     gpa = total_points / total_credits
     rounded_gpa = round(gpa, 2)
-    print("Total Points:", total_points)
-    print("full gpa is :", gpa)
-    return rounded_gpa
+    student.GPA=rounded_gpa
+    student.Hours_count = float(total_credits)
+    student.save()
+    return rounded_gpa 
 
 def assign_course_priorities():
-    graduated_student_ids = get_graduted_student()
-    remaining_courses_map,_ = courses_with_remaining_students()
+    graduated_student_ids,_ = get_graduted_student()
+    remaining_courses_map,optional_map = courses_with_remaining_students()
 
     course_priorities = {
         "1": {}
@@ -420,7 +426,8 @@ def assign_course_priorities():
         for course, student_list in courses.items():
             student_count = len(student_list)
             courses[course] = (student_list, student_count)
-    return modified_data
+
+    return modified_data,modified_data.values()
 def course_with_count_same_level_or_above(test_courses):
     same_level={}
     less_level ={}
@@ -496,8 +503,6 @@ def number_of_student_per_fail_course (code):
     return [student_fail,counter ] , [student_cond,cond_counter]
 def course_with_count(semester):
     course_with_count={}
-    students = Student.objects.all()
-    max_priority=assign_course_priorities() 
     courses_with_levels , university_courses_with_levels,_=course_with_level(semester)
     list_of_course_on_this_semester = []
     for key in courses_with_levels:
@@ -561,5 +566,232 @@ def calculate_gpa_directly(student_id, completed_courses, conditional_courses, f
 
     gpa = total_points / total_credits
     rounded_gpa = round(gpa, 2)
-    print("gpa2",gpa)
     return rounded_gpa
+def get_remaining_courses_for_graduates():
+    remaining_graduates,_ = get_graduted_student()
+    remaining_courses_data = {}
+    courses_map={}
+    elective_map={}
+    list = []
+    for student_id in remaining_graduates:
+        courses_map={}
+        remaining_courses_for_student, _, _, _, _, optional = get_students_details(student_id) 
+        courses_map['courses'] = remaining_courses_for_student
+        courses_map['college'] = optional['college']
+        courses_map['elective'] = optional['elective']
+        courses_map['university'] = optional['university']
+        elective_map['elective'] =(optional['elective'])
+        remaining_courses_data[student_id]=courses_map
+
+    return remaining_courses_data , elective_map
+
+def all_graduate_courses():
+    client = MongoClient("mongodb://localhost:27017/")
+    database = client["advisor"]
+    collection = database["elective"]
+    elective_courses=Course.objects.filter(is_reuqired=0,type=1) 
+    counter= 0
+    list_of_student=[]
+    map_of_elective={}
+    datatoinsert=[]
+    all_Remening , elective = get_remaining_courses_for_graduates()
+    for course in elective_courses :
+        list_of_student=[]
+        datatoinsert={}
+        for student in all_Remening.keys():
+             if all_Remening[student]['elective']=='Passed' :
+                continue
+             if course.code in all_Remening[student]['elective'][1]['remaining_course']:
+                 list_of_student.append(student)
+                 map_of_elective[course.code]=set(list_of_student)
+        datatoinsert[course.code] = list(set(list_of_student))
+        collection.insert_one(datatoinsert)
+       
+    client.close( )
+    return map_of_elective
+def all_optinal_courses():
+    client = MongoClient("mongodb://localhost:27017/")
+    database = client["advisor"]
+    collection = database["elective"]
+    university_optional = University_Courses.objects.filter(is_reuqired=0)
+    college_optional = Course.objects.filter(is_reuqired=0, type=2)
+    university_map = {}
+    college_map = {}
+    students = Student.objects.all()
+
+    for student in students:
+        _, _, _, _, _, optional = get_students_details(student.university_ID)
+
+        for course in college_optional:
+
+            if optional['college']== "Passed" :
+                break
+            if course.code in optional['college'][1]['remaining_course']:
+                if course.code not in college_map:
+                    college_map[course.code] = []
+                college_map[course.code].append(student.university_ID)
+            
+
+        for course in university_optional:
+            if optional['university'] == "Passed" :
+                break
+            if course.code in optional['university'][1]['remaining_course']:
+                if course.code not in university_map:
+                    university_map[course.code] = []
+                university_map[course.code].append(student.university_ID)
+    # يمكنك إعادة university_map و college_map بعد ملء القواميس بهذه القائمة
+    return university_map, college_map
+def insert_excel_file():
+    studentFile = pd.read_excel('./static/excel/student.xlsx')
+    historyFile = pd.read_excel('./static/excel/history.xlsx')
+    Course_History.objects.all().delete()
+    Student.objects.all().delete()
+    major=Major.objects.get(id=1)
+    for index, row in studentFile.iterrows():
+        if not Student.objects.filter(university_ID=row['ID']).exists():
+            student = Student()
+            student.university_ID = row['ID']
+            student.name= row['الاسم']
+            student.GPA = 0  # قيمة افتراضية لل GPA يمكنك تعديلها بناءً على البيانات الحقيقية
+            student.Hours_count = 0
+            student.major=major  # قيمة افتراضية لعدد الساعات يمكنك تعديلها بناءً على البيانات الحقيقية
+            student.save()
+    for index , row in historyFile.iterrows():
+        course_History = Course_History()
+        student= Student.objects.get(university_ID=row['ID'])
+        if row['Grade']=='-':
+            continue
+        course = None
+        try:
+
+            course = Course.objects.get(code=row['Course #'])
+            course_History.student = student
+            course_History.course = course
+            course_History.degree = row['Grade']
+        except Course.DoesNotExist:
+            try:
+                course = University_Courses.objects.get(code=row['Course #'])
+
+                course_History.student = student
+                course_History.universit_course = course
+                course_History.degree = row['Grade']
+            except University_Courses.DoesNotExist:
+                continue
+        course_History.save()
+
+def calcGpaForAllStydents():
+    students = Student.objects.all()
+    for student in students :
+        gpa=calculate_gpa(student.university_ID)
+
+def savetonosql():
+    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    database = client["advisor"]
+    results_collection = database["electiveResult"]
+
+def coursesonlevelwithstudents(semester):
+    _,graduated_students=get_graduted_student()
+    levels = Level.objects.filter(semester_name=semester)
+    courses_with_levels = {}
+    university_courses_with_levels = {}
+    final_map={}
+    graduate = get_graduted_student()
+    courses =Course.objects.filter(level__in=levels,is_reuqired=True)
+    uni_courses =University_Courses.objects.filter(level__in=levels,is_reuqired=True)
+    all_courses = list(chain(courses, uni_courses))
+    students = Student.objects.all()   
+     
+    for course in all_courses:
+        combine_map = {'fault':[],'same level':[],'condition':[],'graduate':[],'students':[]}
+        # history = Course_History.objects.filter(student__in=students)
+        # for i in history:
+        #     if i.degree =='F' :
+        #         combine_map['fault'].append(i.student)
+        #     elif i.degree in ['D', 'D+']  and float (i.student.GPA)<2.00:
+        #         combine_map['condition'].append(i.student)
+        for s in students:
+            remaining_courses_for_student,completed,_,_,_,_,=get_students_details(s.university_ID)
+            c=None
+            try:
+                c = Course.objects.get(code=course.code)
+                if not Course_History.objects.filter(Q(student=s) & Q(course=c)).exists() :
+                    if s in graduated_students:
+                        combine_map['graduate'].append(s)
+                        continue
+                    elif course.level==s.level:
+                        combine_map['same level'].append (s) 
+                        continue
+            except : 
+                c= University_Courses.objects.get(code=course.code)
+                if not Course_History.objects.filter(Q(student=s) & Q(universit_course=c)).exists() :
+                    if s in graduated_students:
+                        combine_map['graduate'].append(s)
+                        continue
+                    elif course.level==s.level:
+                        combine_map['same level'].append (s) 
+                        continue
+           
+
+        final_map[course]=combine_map
+                
+        return final_map
+def getCourseswithstudents(semester):
+    client = MongoClient("mongodb://localhost:27017/")
+    database = client["advisor"]
+    collection = database["courses"]
+    _, graduated_students = get_graduted_student()
+    levels = Level.objects.filter(semester_name=semester)
+    final_map = {}
+
+    for course in Course.objects.filter(level__in=levels, is_reuqired=True):
+        combine_map = {'fault': [], 'same_level': [], 'condition': [], 'graduate': [], 'students': []}
+        final_map2 = {}
+        students_data = {'fault': [], 'same level': [], 'condition': [], 'graduate': [], 'students': []}
+
+        students = Student.objects.all()
+
+        for student in students:
+            remaining_courses, completed_courses, conditional_courses, fail_courses, _, optional_map = get_students_details(student.university_ID)
+
+            if course.code in remaining_courses and check_if_passed(course.code, student.university_ID) and student.level != course.level and student not in graduated_students and check_prerequist(course.code,student.university_ID):
+                combine_map['students'].append(student)
+                students_data['students'].append(student.university_ID)
+                continue
+            elif course.code in remaining_courses and student.level == course.level and student not in graduated_students and check_prerequist(course.code,student.university_ID):
+                combine_map['same_level'].append(student)
+                students_data['same level'].append(student.university_ID)
+                continue
+            elif course.code in fail_courses and student.university_ID not in graduated_students:
+                combine_map['fault'].append(student)
+                students_data['fault'].append(student.university_ID)
+                continue
+            elif course.code in conditional_courses and student.university_ID not in graduated_students:
+                combine_map['condition'].append(student)
+                students_data['condition'].append(student.university_ID)
+                continue
+
+            elif course.code in remaining_courses and student in graduated_students and check_prerequist(course.code,student.university_ID):
+                combine_map['graduate'].append(student)
+                students_data['graduate'].append(student.university_ID)
+
+        final_map[course] = combine_map
+        final_map2[course.code]= students_data
+
+        collection.insert_one(final_map2)
+
+    return final_map
+
+            
+
+def insertStudentMajor():
+    studentFile=pd.read_excel('./static/excel/studentswithmajor.xlsx')
+    for index , row in studentFile.iterrows():
+        if not Student.objects.filter(university_ID=row['ID']).exists():
+            continue
+        else:
+    
+            student= Student.objects.get(university_ID=row['ID'])
+  
+            major = Major.objects.get(name = row['major'])
+            student.major=major
+            student.save()

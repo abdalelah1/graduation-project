@@ -1,6 +1,6 @@
 
 
-from django.db import models
+from django.db import models ,connection
 
 # Create your models here.
 from django.contrib.auth.models import User
@@ -44,6 +44,11 @@ class Major(models.Model):
 
 class Course_Type (models.Model):
     typeOfCourse =models.CharField(max_length=50)
+class level2(models.Model):
+    name=  models.CharField(max_length=50)
+class sublevel(models.Model):
+    name = models.CharField(max_length=50)
+    level = models.ForeignKey(level2,on_delete=models.CASCADE,null=True)
 # Create your models here.
 class Course(models.Model):
     name =models.CharField(max_length=50)
@@ -51,16 +56,21 @@ class Course(models.Model):
     level = models.ForeignKey(Level,on_delete=models.CASCADE,null=False)
     credit = models.CharField(max_length=10)
     is_reuqired = models.BooleanField(default=True) #ساعات مسجلة
-    major = models.ForeignKey(Major,on_delete=models.CASCADE,null=False)
+    majors = models.ManyToManyField(Major)
     type = models.ForeignKey(Course_Type,on_delete=models.CASCADE,null=False)
     hours_condition= models.IntegerField(null=True,default=0)
     preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)
+    level2 = models.ForeignKey(level2,on_delete=models.CASCADE,null=True )
+    def __str__(self) :
+            return  str(self.code)
+
 
 class Student (models.Model):
-    university_ID=models.CharField(max_length=50)
+    university_ID=models.CharField(max_length=50,null=True)
+    name = models.CharField(max_length=50 , null=True)
     major=models.ForeignKey(Major,on_delete=models.CASCADE,null=True)
-    GPA = models.CharField(max_length=50)
-    level = models.ForeignKey(Level , on_delete=models.CASCADE,null=False)
+    GPA = models.CharField(max_length=50,null=True)
+    level = models.ForeignKey(Level , on_delete=models.CASCADE,null=True)
     Hours_count= models.IntegerField(null=True)
 class Course_History(models.Model):
     degree = models.CharField(max_length=50)
@@ -71,3 +81,4 @@ class Recommended_Course (models.Model):
     course = models.ForeignKey(Course,on_delete=models.CASCADE,null=False)
     student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)
     no_student = models.IntegerField()
+
