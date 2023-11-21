@@ -45,8 +45,18 @@ def elective(request):
 ###############
 def home (request) : 
     return render (request,'home/home.html')
+def allcourses(request):
+    courses_required = Course.objects.filter(is_reuqired=True)
+    courses_not_required = Course.objects.filter(is_reuqired=False ,type=2)
+    elective = Course.objects.filter(is_reuqired=False ,type=1)
+    context={
+        'courses_required':courses_required,
+        'courses_not_required':courses_not_required,
+        'elective':elective
+    }
+    return render (request,'allcourses/allcourses.html',context)
 def courses(request):
-    return render (request,'courses/courses.html')
+        return render (request,'courses/courses.html')
 def general(request):
     return render (request,'general/general.html')
 def college(request):

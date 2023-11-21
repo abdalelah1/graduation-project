@@ -12,6 +12,7 @@ urlpatterns = [
     path('college/',college , name='college'),
     path('department/',department , name='department'),
     path('major/',major , name='major'),
-     path('students/',students , name='students'),
+    path('students/',students , name='students'),
+    path('allcourses/',allcourses , name='allcourses'),
 
 ]
