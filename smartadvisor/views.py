@@ -42,4 +42,23 @@ def elective(request):
         'elective' : electivemap
     }
     return render(request, 'elective/elective.html',context)
-    
+###############
+def home (request) : 
+    return render (request,'home/home.html')
+def courses(request):
+    return render (request,'courses/courses.html')
+def general(request):
+    return render (request,'general/general.html')
+def college(request):
+    return render (request,'college/college.html')
+def department(request):
+    return render (request,'department/department.html')
+def major(request):
+    return render (request,'major/major.html')
+def students(request):
+    students = Student.objects.all()
+    context={}
+    context={
+        'students':students
+    }
+    return render (request,'students/students.html',context)

@@ -282,7 +282,6 @@ def check_prerequist(course_code , student_id):
             missing_pre=[]
         else:
              missing_pre.append(pre.code)
-            # قائمة بأسماء المواد التي لم ينجزها الطالب بنجاح
     if missing_pre==[]:
         return True
     else :
@@ -296,7 +295,6 @@ def course_with_level(semester):
     uni_courses =University_Courses.objects.filter(level__in=levels,is_reuqired=True)
     all_courses = list(chain(courses, uni_courses))
     print()
-    print('all_courses',all_courses)
     for level in levels:
         condition1 = Q(level=level)
         condition2 = Q(is_reuqired=True)
@@ -691,11 +689,8 @@ def savetonosql():
 
 def coursesonlevelwithstudents(semester):
     _,graduated_students=get_graduted_student()
-    levels = Level.objects.filter(semester_name=semester)
-    courses_with_levels = {}
-    university_courses_with_levels = {}
+    levels = Level.objects.filter(semester_name=semester)   
     final_map={}
-    graduate = get_graduted_student()
     courses =Course.objects.filter(level__in=levels,is_reuqired=True)
     uni_courses =University_Courses.objects.filter(level__in=levels,is_reuqired=True)
     all_courses = list(chain(courses, uni_courses))
@@ -703,13 +698,7 @@ def coursesonlevelwithstudents(semester):
      
     for course in all_courses:
         combine_map = {'fault':[],'same level':[],'condition':[],'graduate':[],'students':[]}
-        # history = Course_History.objects.filter(student__in=students)
-        # for i in history:
-        #     if i.degree =='F' :
-        #         combine_map['fault'].append(i.student)
-        #     elif i.degree in ['D', 'D+']  and float (i.student.GPA)<2.00:
-        #         combine_map['condition'].append(i.student)
-        for s in students:
+        for s  in students:
             remaining_courses_for_student,completed,_,_,_,_,=get_students_details(s.university_ID)
             c=None
             try:
@@ -742,24 +731,25 @@ def getCourseswithstudents(semester):
     _, graduated_students = get_graduted_student()
     levels = Level.objects.filter(semester_name=semester)
     final_map = {}
+    courses = list(chain(Course.objects.filter(level__in=levels, is_reuqired=True), University_Courses.objects.filter(level__in=levels, is_reuqired=True)))
 
-    for course in Course.objects.filter(level__in=levels, is_reuqired=True):
+    for course in courses:
         combine_map = {'fault': [], 'same_level': [], 'condition': [], 'graduate': [], 'students': []}
         final_map2 = {}
-        students_data = {'fault': [], 'same level': [], 'condition': [], 'graduate': [], 'students': []}
-
+        students_data = {'fault': [], 'same_level': [], 'condition': [], 'graduate': [], 'students': []}
+        
         students = Student.objects.all()
 
         for student in students:
             remaining_courses, completed_courses, conditional_courses, fail_courses, _, optional_map = get_students_details(student.university_ID)
 
-            if course.code in remaining_courses and check_if_passed(course.code, student.university_ID) and student.level != course.level and student not in graduated_students and check_prerequist(course.code,student.university_ID):
+            if course.code in remaining_courses and  student.level != course.level and student not in graduated_students and check_prerequist(course.code,student.university_ID):
                 combine_map['students'].append(student)
                 students_data['students'].append(student.university_ID)
                 continue
             elif course.code in remaining_courses and student.level == course.level and student not in graduated_students and check_prerequist(course.code,student.university_ID):
                 combine_map['same_level'].append(student)
-                students_data['same level'].append(student.university_ID)
+                students_data['same_level'].append(student.university_ID)
                 continue
             elif course.code in fail_courses and student.university_ID not in graduated_students:
                 combine_map['fault'].append(student)
@@ -776,7 +766,7 @@ def getCourseswithstudents(semester):
 
         final_map[course] = combine_map
         final_map2[course.code]= students_data
-
+        print(final_map2.keys())
         collection.insert_one(final_map2)
 
     return final_map

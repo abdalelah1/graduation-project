@@ -1,0 +1,44 @@
+{% extends 'home/home.html'%}
+{% block content%}
+<div class="add-excel-button">
+    <input type="file" id="excelFileInput" accept=".xlsx" style="display: none;">
+    <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click();">
+        <i class="fas fa-file-excel"></i> Add Excel File history
+    </button>
+    <h1> students</h1>
+    <div class="level-container">   
+        <div class="report-table-container">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>university ID</th>
+                        <th>name</th>
+                        <th>Major</th>
+                        <th>GPA</th>
+                        
+                        <th>level</th>
+                        <th> com hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students%}
+                    <tr>
+                        <td>{{student.university_ID}}</td>
+                        <td>{{student.name}}</td>
+                        <td>{{student.major.name}}</td>
+                        <td>{{student.GPA}}</td>
+                        <td>{{student.level.level}}</td>
+                        <td>{{student.Hours_count}}</td>
+
+                        
+                    </tr>
+                    {%endfor%}
+                    <!-- Add more rows for other data -->
+                </tbody>
+           
+            <br>
+            
+        </div>
+    </div> 
+</div>
+{% endblock content%}
