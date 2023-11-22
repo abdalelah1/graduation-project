@@ -5,7 +5,10 @@ from .models import *
 from django.http import JsonResponse
 import timeit
 from django.utils import timezone
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login ,logout
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+
 
 from pymongo import MongoClient
 
@@ -44,8 +47,20 @@ def elective(request):
     }
     return render(request, 'elective/elective.html',context)
 ###############
+@login_required(login_url='login')
 def home (request) : 
-    return render (request,'home/home.html')
+    if request.user.is_superuser:
+        User.objects.filter(is_staff=True).exclude(username=request.user.username).update(is_active=False)
+        
+        # تسجيل الخروج من الحساب الحالي
+        logout(request) 
+    user  = request.user
+    context = {}
+    context= {
+        'user':user
+    }
+    return render (request,'home/home.html',context)
+@login_required(login_url='login')
 def allcourses(request):
     courses_required = Course.objects.filter(is_reuqired=True)
     courses_not_required = Course.objects.filter(is_reuqired=False ,type=2)
@@ -66,8 +81,11 @@ def department(request):
     return render (request,'department/department.html')
 def major(request):
     return render (request,'major/major.html')
+@login_required(login_url='login')
 def students(request):
-    students = Student.objects.all()
+    user = request.user
+    
+    students = Student.objects.filter(major__department=user.advisor.department )
     context={}
     context={
         'students':students
@@ -80,15 +98,19 @@ def department_details(request):
         'departments': departments
     }
     return render( request,'report/report.html', context)
+@csrf_exempt
 def login_page(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
-            # Redirect to a success page or dashboard upon successful login
-            return redirect('home')
+            if user.is_staff:
+                login(request,user)
+                return redirect('admin:index')
+            else : 
+                login(request, user)
+                return redirect('home')
         else:
             error_message = "Invalid username or password"
             return render(request, 'login/login.html', {'error': error_message})

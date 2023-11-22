@@ -6,18 +6,22 @@
         <i class="fas fa-file-excel"></i> Add Excel File history
     </button>
     <h1> students</h1>
-8
+    <div class="report-table-container">
+        <table class="report-table">
+                        <th> # </th>
                         <th>name</th>
                         <th>Major</th>
-                        <th>GPA</th>
-                        
+                 
                         <th>level</th>
                         <th> com hours</th>
+                        <th> level </th>
+                        <th>GPA</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for student in students%}
                     <tr>
+                        <td>{{forloop.counter}}</td>
                         <td>{{student.university_ID}}</td>
                         <td>{{student.name}}</td>
                         <td>{{student.major.name}}</td>
@@ -30,6 +34,7 @@
                     {%endfor%}
                     <!-- Add more rows for other data -->
                 </tbody>
+            </table>
            
             <br>
             
