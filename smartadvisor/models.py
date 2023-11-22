@@ -1,6 +1,8 @@
 
 
 from django.db import models ,connection
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 from django.contrib.auth.models import User
@@ -13,7 +15,8 @@ class Level (models.Model):
 class University( models.Model):
     name =models.CharField(max_length=50)
     no_university_courses_required = models.IntegerField()
-
+    def __str__(self) :
+            return  str(self.name)
 class University_Courses (models.Model):
     name =models.CharField(max_length=50)
     code=models.CharField(max_length=20)
@@ -27,6 +30,8 @@ class College(models.Model):
     name =models.CharField(max_length=50)
     number_of_required_optional_course = models.IntegerField(default=2)
     university= models.ForeignKey(University,on_delete=models.CASCADE,null=True)
+    def __str__(self) :
+            return  str(self.name)
 class Admin (models.Model):
     name = models.CharField(max_length=100)
     user = models.ForeignKey(User,on_delete=models.CASCADE,null=False)
@@ -37,6 +42,8 @@ class Department(models.Model):
     full_courses_count =models.IntegerField()
     no_hourse_Tobe_graduated = models.IntegerField()
     no_required_Elecvtive=models.IntegerField()
+    def __str__(self) :
+            return  str(self.name)
     
 class Major(models.Model):
     name =models.CharField(max_length=50)
@@ -72,6 +79,8 @@ class Student (models.Model):
     GPA = models.CharField(max_length=50,null=True)
     level = models.ForeignKey(Level , on_delete=models.CASCADE,null=True)
     Hours_count= models.IntegerField(null=True)
+    def __str__(self) :
+            return  str(self.university_ID)
 class Course_History(models.Model):
     degree = models.CharField(max_length=50)
     student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)
@@ -82,3 +91,9 @@ class Recommended_Course (models.Model):
     student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)
     no_student = models.IntegerField()
 
+class Advisor (models.Model):
+    user= models.OneToOneField(User,on_delete=models.CASCADE,null=False)
+    name =  models.CharField(max_length=50)
+    department = models.OneToOneField(Department , on_delete=models.CASCADE,null=True)
+    def __str__(self) :
+            return  str(self.name)

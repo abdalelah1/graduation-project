@@ -1,10 +1,13 @@
 {% extends 'home/home.html'%}
+{%load static%}
 {% block content%}
 <h1> college & department required courses </h1>
+
+
 <div class="report-table-container">
     <table class="report-table">
         <thead>
-            <tr>
+            <tr><th>#</th>
                 <th>Code</th>
                 <th>name</th>
                 <th>credit</th>
@@ -16,7 +19,7 @@
         </thead>
         <tbody> 
             {% for course in courses_required %}
-            <tr>
+            <tr><td>{{forloop.counter}}</td>
                 <td>{{course.code}}</td>
                 <td>{{course.name}}</td>
                 <td>{{course.credit}}</td>
@@ -39,7 +42,7 @@
     <div class="report-table-container">
         <table class="report-table">
             <thead>
-                <tr>
+                <tr><th>#</th>
                     <th>Code</th>
                     <th>name</th>
                     <th>credit</th>
@@ -50,7 +53,7 @@
             </thead>
             <tbody> 
                 {% for course in courses_not_required%}
-                <tr>
+                <tr> <td>{{forloop.counter}}</td>
                     <td>{{course.code}}</td>
                     <td>{{course.name}}</td>
                     <td>{{course.credit}}</td>
@@ -72,7 +75,7 @@
     <div class="report-table-container">
         <table class="report-table">
             <thead>
-                <tr>
+                <tr><th>#</th>
                     <th>Code</th>
                     <th>name</th>
                     <th>credit</th>
@@ -85,6 +88,7 @@
             <tbody> 
                 {% for course in elective%}
                 <tr>
+                    <td>{{forloop.counter}}</td>
                     <td>{{course.code}}</td>
                     <td>{{course.name}}</td>
                     <td>{{course.credit}}</td>
@@ -107,4 +111,5 @@
                 <!-- Add more rows for other data -->
             </tbody>
         </table>
+
 {% endblock content%}
