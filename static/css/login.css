@@ -56,7 +56,7 @@ input[type="password"]:focus {
     box-shadow: 0 0 8px rgba(20, 165, 163, 0.4);
 }
 
-button {
+#buttonb {
     width: 100%;
     padding: 12px;
     border: none;
@@ -67,7 +67,7 @@ button {
     transition: background-color 0.3s, transform 0.3s;
 }
 
-button:hover {
+#buttonb:hover {
     background-color: #000d2b;
     transform: translateY(-3px);
 }
@@ -86,4 +86,11 @@ button:hover {
 
 .message a:hover {
     text-decoration: underline;
+}
+/* Error message styling */
+.error-message {
+    color: #ff0000; /* Red color for error message */
+    font-size: 16px; /* Font size */
+    margin-top: 8px; /* Margin from the top */
+    /* Other styles for your error message */
 }
