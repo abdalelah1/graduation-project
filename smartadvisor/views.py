@@ -1,10 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from .function import *
 from .algorithm import *
 from .models import *
 from django.http import JsonResponse
 import timeit
 from django.utils import timezone
+from django.contrib.auth import authenticate, login
 
 from pymongo import MongoClient
 
@@ -72,3 +73,23 @@ def students(request):
         'students':students
     }
     return render (request,'students/students.html',context)
+
+def department_details(request):
+    departments = Department.objects.all()
+    context = {
+        'departments': departments
+    }
+    return render( request,'report/report.html', context)
+def login_page(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            # Redirect to a success page or dashboard upon successful login
+            return redirect('home')
+        else:
+            error_message = "Invalid username or password"
+            return render(request, 'login/login.html', {'error': error_message})
+    return render(request, 'login/login.html')

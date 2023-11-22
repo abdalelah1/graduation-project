@@ -14,5 +14,7 @@ urlpatterns = [
     path('major/',major , name='major'),
     path('students/',students , name='students'),
     path('allcourses/',allcourses , name='allcourses'),
+    path('report/',department_details , name='report'),
+    path('login/',login_page , name='login'),
 
 ]
