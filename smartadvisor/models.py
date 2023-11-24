@@ -19,7 +19,7 @@ class University( models.Model):
             return  str(self.name)
 class University_Courses (models.Model):
     name =models.CharField(max_length=50)
-    code=models.CharField(max_length=20)
+    code=models.CharField(max_length=20,db_index=True)
     level = models.ForeignKey(Level,on_delete=models.CASCADE,null=False)
     credit = models.CharField(max_length=10)
     is_reuqired = models.BooleanField(default=True)
@@ -32,10 +32,7 @@ class College(models.Model):
     university= models.ForeignKey(University,on_delete=models.CASCADE,null=True)
     def __str__(self) :
             return  str(self.name)
-class Admin (models.Model):
-    name = models.CharField(max_length=100)
-    user = models.ForeignKey(User,on_delete=models.CASCADE,null=False)
-    college = models.ForeignKey(College,on_delete=models.CASCADE,null=False)
+
 class Department(models.Model):
     name =models.CharField(max_length=50)
     college=models.ForeignKey(College,on_delete=models.CASCADE,null=False)
@@ -51,15 +48,10 @@ class Major(models.Model):
 
 class Course_Type (models.Model):
     typeOfCourse =models.CharField(max_length=50)
-class level2(models.Model):
-    name=  models.CharField(max_length=50)
-class sublevel(models.Model):
-    name = models.CharField(max_length=50)
-    level = models.ForeignKey(level2,on_delete=models.CASCADE,null=True)
-# Create your models here.
+
 class Course(models.Model):
     name =models.CharField(max_length=50)
-    code=models.CharField(max_length=20)
+    code=models.CharField(max_length=20,db_index=True)
     level = models.ForeignKey(Level,on_delete=models.CASCADE,null=False)
     credit = models.CharField(max_length=10)
     is_reuqired = models.BooleanField(default=True) #ساعات مسجلة
@@ -67,13 +59,12 @@ class Course(models.Model):
     type = models.ForeignKey(Course_Type,on_delete=models.CASCADE,null=False)
     hours_condition= models.IntegerField(null=True,default=0)
     preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)
-    level2 = models.ForeignKey(level2,on_delete=models.CASCADE,null=True )
     def __str__(self) :
             return  str(self.code)
 
 
 class Student (models.Model):
-    university_ID=models.CharField(max_length=50,null=True)
+    university_ID=models.CharField(max_length=50,null=True,db_index=True)
     name = models.CharField(max_length=50 , null=True)
     major=models.ForeignKey(Major,on_delete=models.CASCADE,null=True)
     GPA = models.CharField(max_length=50,null=True)
@@ -83,13 +74,10 @@ class Student (models.Model):
             return  str(self.university_ID)
 class Course_History(models.Model):
     degree = models.CharField(max_length=50)
-    student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)
-    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True)
-    universit_course = models.ForeignKey(University_Courses,on_delete=models.CASCADE,null=True)
-class Recommended_Course (models.Model):
-    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=False)
-    student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False)
-    no_student = models.IntegerField()
+    student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False,db_index=True)
+    course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True,db_index=True)
+    universit_course = models.ForeignKey(University_Courses,on_delete=models.CASCADE,null=True,db_index=True)
+
 
 class Advisor (models.Model):
     user= models.OneToOneField(User,on_delete=models.CASCADE,null=False)
