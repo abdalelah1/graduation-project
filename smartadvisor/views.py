@@ -158,7 +158,8 @@ def student_on_course (request,course , key):
             'course':getcourse,
         }
         return render (request,'students/students.html', context)
-
+def help(request):
+    return render (request,'help/help.html')
 def general(request):
     return render (request,'general/general.html')
 def college(request):
