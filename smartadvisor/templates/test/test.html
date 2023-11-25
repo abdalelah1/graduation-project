@@ -20,7 +20,7 @@
 
         {% for course, data in final_map.items %}
             <tr>
-                <td>{{ course.code }}</td>
+                <td>{{ course }}</td>
                 <td>{{ data.fault|length }}</td>
                 <td>{{ data.condition|length }}</td>
                 <td>{{ data.graduate|length }}</td>

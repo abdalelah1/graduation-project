@@ -16,34 +16,37 @@ client = MongoClient("mongodb://localhost:27017/")
 database = client["advisor"]
 # Create your views here.
 def test(request):
+    courses_map={}
     start_time = timezone.now()
-    map = getCourseswithstudents(1)
+    # map = getCourseswithstudents(1)
     end_time = timezone.now()
     elapsed_time = end_time - start_time
     print(elapsed_time)
-
+    collection = database["courses"]
+    result = collection.find({}, {"_id": 0})
+    for r in result:
+    # الوصول إلى الـ key والـ value لكل وثيقة
+        for key, value in r.items():
+             courses_map[key]=value    
     context={
-        'final_map' : map
+        'final_map' : courses_map
     }
     return render(request, 'test/test.html', context)
 def elective(request):
     electivemap={}
-    # university_map, college_map=all_optinal_courses()
+    university_map, college_map=all_optinal_courses()
     # client = pymongo.MongoClient("mongodb://localhost:27017/")
     # database = client["advisor"]
     # results_collection = database["electiveResult"]
     # results_collection.insert_one({"elective": list(elective), "university_map": list(university_map) , "college_map":list(college_map)})
     # client.close()
-
     collection = database["elective"]
     result = collection.find({}, {"_id": 0})
-# استعراض جميع الوثائق ف    ي مجموعة البيانات
     for r in result:
-    # الوصول إلى الـ key والـ value لكل وثيقة
         for key, value in r.items():
              electivemap[key]=value
     context ={
-        'elective' : electivemap
+        'elective' : electivemap    
     }
     return render(request, 'elective/elective.html',context)
 ###############
@@ -72,7 +75,90 @@ def allcourses(request):
     }
     return render (request,'allcourses/allcourses.html',context)
 def courses(request):
-        return render (request,'courses/courses.html')
+    collection = database["courses"]
+    elective_result = database["elective"]
+    university_result = database["university"]
+    faculity_result = database["college"]
+    result = collection.find({}, {"_id": 0})  
+    courses_map={}
+    elective = elective_result.find({}, {"_id": 0})  
+    elective_map = {}
+    faculity = {}
+    university={}
+    faculity_result.find_one({}, {"_id": 0})
+    university_result.find_one({}, {"_id": 0})
+    for r in result:
+    # الوصول إلى الـ key والـ value لكل وثيقة
+        for key, value in r.items():
+            getcourse = None
+            try:
+                getcourse = Course.objects.get(code=key )
+            except:
+                getcourse = University_Courses.objects.get(code=key )
+            courses_map[getcourse]=value
+    for r in elective:
+    # الوصول إلى الـ key والـ value لكل وثيقة
+        for key, value in r.items():
+            getcourse = Course.objects.get(code=key )
+            elective_map[getcourse]=value
+    test_map={}
+    test_map = faculity_result.find_one({}, {"_id": 0})
+    
+    for key in test_map:
+        print(test_map[key])
+
+    for key  in test_map:
+        course = Course.objects.get(code = key)
+        faculity[course]=test_map[key]
+    test_map = university_result.find_one({}, {"_id": 0})
+
+    for key  in test_map:
+        course = University_Courses.objects.get(code = key)
+        university[course]=test_map[key]
+            
+    context={
+        'final_map' : courses_map,
+        'elective_map':elective_map,
+        'college_map':faculity,
+        'university_map':university
+    }           
+    
+    return render (request,'courses/courses.html',context)
+def student_on_course (request,course , key):
+    list_of_student=[]
+    if key == 'elective':
+        collection = database["elective"]
+        document = collection.find_one({course: {"$exists": True}},{"_id": 0})
+        print(document)
+        for i in document[course]:
+            student = Student.objects.get(university_ID=i)
+            list_of_student.append(student)
+        getcourse = Course.objects.get(code=course )
+        print()
+        context={
+            'students':list_of_student,
+            'course':getcourse,
+        }
+        return render (request,'students/students.html', context)
+    else: 
+        collection = database["courses"]
+        list_of_student =[]
+        document = collection.find_one({course: {"$exists": True}},{"_id": 0})
+        for i in document[course][key]:
+            student = Student.objects.get(university_ID=i)
+            list_of_student.append(student)
+        getcourse = None
+        try:
+            getcourse = Course.objects.get(code=course )
+        except:
+            getcourse = University_Courses.objects.get(code=course )
+        print(document)
+        context={
+            'students':list_of_student,
+            'course':getcourse,
+        }
+        return render (request,'students/students.html', context)
+
 def general(request):
     return render (request,'general/general.html')
 def college(request):

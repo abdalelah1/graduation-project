@@ -3,26 +3,36 @@
 <h1>Students Report</h1>
 
                 <div class="level-container">   
-                    <h2 class="level-title">Level 1.1</h2>
+                    <h2 class="level-title">Required Courses</h2>
                     <div class="report-table-container">
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th>Code</th>
-                                    <th>Total Students</th>
-                                    <th>Fail Students</th>
-                                    <th>Conditional Students</th>
-                                    <th>Same Level Students</th>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Course Code</th>
+                                    <th>Level</th>
+                                    <th>Fail Count</th>
+                                    <th>Conditional Count</th>
+                                    <th>Graduated Count</th>
+                                    <th>Same Level Count</th>
+                                    <th>Pass PreRequist & Hours condition</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for course, data in final_map.items %}
                                 <tr>
-                                    <td>ENIT202</td>
-                                    <td>2</td>
-                                    <td>15</td>
-                                    <td>10</td>
-                                    <td>60</td>
+                                    <td>{{forloop.counter}}</td>
+                                    <td>{{course.name}}</td>
+                                    <td>{{ course.code }}</td>
+                                    <td>{{ course.level.level }}</td>
+                                    <td> <a href="{% url 'student_on_course' course 'fault'    %}">{{ data.fault|length }}</a></td>
+                                    <td><a href="{% url 'student_on_course' course 'condition'    %}">{{ data.condition|length }} </a></td>
+                                    <td> <a href="{% url 'student_on_course' course 'graduate'    %}">{{ data.graduate|length }}</a></td>
+                                    <td> <a href="{% url 'student_on_course' course 'same_level'    %}">{{ data.same_level|length }}</a></td>
+                                    <td> <a href="{% url 'student_on_course' course 'students'    %}">{{ data.students|length }}</a></td>
                                 </tr>
+                            {% endfor %}
                                 <!-- Add more rows for other data -->
                             </tbody>
                         </table>
@@ -30,103 +40,70 @@
                     </div>
                 </div>
                 <div class="level-container">
-                    <h2 class="level-title">    Level 2.1</h2>
+                    <h2 class="level-title">  Elective</h2>
                     <div class="report-table-container">
                         <table class="report-table">
                             <thead>
                                 <tr>
                                     <th>Code</th>
-                                    <th>Total Students</th>
-                                    <th>Fail Students</th>
-                                    <th>Conditional Students</th>
-                                    <th>Same Level Students</th>
+                                    <th>Name</th>
+                                    <th>graduate Students</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for course, data in elective_map.items %}
                                 <tr>
-                                    <td>ENIT202</td>
-                                    <td>28</td>
-                                    <td>20</td>
-                                    <td>12</td>
-                                    <td>7</td>
+                                    <td>{{course}}</td>
+                                    <td>{{course.name}}</td>
+                                    <td><a href="{% url 'student_on_course' course 'elective'    %}">{{data|length}}</a></td>
                                 </tr>
-                               
+                               {%endfor%}
                                 <!-- Add more rows for other data -->
                             </tbody>
                         </table>
                         <br>
-                        <h2 class="level-title">Level 3.1</h2>
+                        
+                        <h2 class="level-title">Faculty optional</h2>
                         <table class="report-table">
                             <thead>
                                 <tr>
                                     <th>Code</th>
+                                    <th>Name</th>
                                     <th>Total Students</th>
-                                    <th>Fail Students</th>
-                                    <th>Conditional Students</th>
-                                    <th>Same Level Students</th>
                                 </tr>
+                                
                             </thead>
                             <tbody>
+                                {% for course, data in college_map.items %}
                                 <tr>
-                                    <td>ENIT2002</td>
-                                    <td>28</td>
-                                    <td>20</td>
-                                    <td>12</td>
-                                    <td>7</td>
+                                    <td>{{course}}</td>
+                                    <td>{{course.name}}</td>
+                                    <td> <a href="">{{data|length}}</a></td>
+
                                 </tr>
+                                {%endfor%}
                                 <!-- Add more rows for other data -->
                             </tbody>
                         </table>
                         <br>
-                        <h2 class="level-title">Level 4.1</h2>
+                        <h2 class="level-title">Univerity Optional</h2>
                         <table class="report-table">
                             <thead>
                                 <tr>
                                     <th>Code</th>
+                                    <th>Name</th>
                                     <th>Total Students</th>
-                                    <th>Fail Students</th>
-                                    <th>Conditional Students</th>
-                                    <th>Same Level Students</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for course, data in university_map.items %}
                                 <tr>
-                                    <td>ENIT2002</td>
-                                    <td>28</td>
-                                    <td>20</td>
-                                    <td>12</td>
-                                    <td>7</td>
+                                    <td>{{course}}</td>
+                                    <td>{{course.name}}</td>
+                                    <td> <a href="">{{data|length}}</a></td>
+
                                 </tr>
-                                <!-- Add more rows for other data -->
-                            </tbody>
-                        </table>
-                        <br>
-                        <h2 class="level-title">Level 5.1</h2>
-                        <table class="report-table">
-                            <thead>
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Total Students</th>
-                                    <th>Fail Students</th>
-                                    <th>Conditional Students</th>
-                                    <th>Same Level Students</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>ENIT2002</td>
-                                    <td>28</td>
-                                    <td>20</td>
-                                    <td>12</td>
-                                    <td>7</td>
-                                </tr>
-                                <tr>
-                                    <td>ENIT2002</td>
-                                    <td>28</td>
-                                    <td>20</td>
-                                    <td>12</td>
-                                    <td>7</td>
-                                </tr>
+                                {%endfor%}
                                 <!-- Add more rows for other data -->
                             </tbody>
                         </table>

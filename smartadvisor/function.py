@@ -9,6 +9,8 @@ from itertools import chain
 import pymongo
 from pymongo import MongoClient
 import pandas as pd 
+def tostring(object1):
+    return str(object1)
 def RemainingCourses(all_courses, completed_courses):
     all_courses_set = set(all_courses)
     completed_courses_set = set(completed_courses)
@@ -610,7 +612,8 @@ def all_graduate_courses():
 def all_optinal_courses():
     client = MongoClient("mongodb://localhost:27017/")
     database = client["advisor"]
-    collection = database["elective"]
+    collection1 = database["college"]
+    collection2 = database["university"]
     university_optional = University_Courses.objects.filter(is_reuqired=0)
     college_optional = Course.objects.filter(is_reuqired=0, type=2)
     university_map = {}
@@ -628,8 +631,6 @@ def all_optinal_courses():
                 if course.code not in college_map:
                     college_map[course.code] = []
                 college_map[course.code].append(student.university_ID)
-            
-
         for course in university_optional:
             if optional['university'] == "Passed" :
                 break
@@ -637,7 +638,8 @@ def all_optinal_courses():
                 if course.code not in university_map:
                     university_map[course.code] = []
                 university_map[course.code].append(student.university_ID)
-    # يمكنك إعادة university_map و college_map بعد ملء القواميس بهذه القائمة
+    collection1.insert_one(college_map)
+    collection2.insert_one(university_map)
     return university_map, college_map
 def insert_excel_file():
     studentFile = pd.read_excel('./static/excel/student.xlsx')
@@ -745,24 +747,24 @@ def getCourseswithstudents(semester):
 
             if course.code in remaining_courses and  student.level != course.level and student not in graduated_students and check_prerequist(course.code,student.university_ID):
                 combine_map['students'].append(student)
-                students_data['students'].append(student.university_ID)
+                students_data['students'].append(student)
                 continue
             elif course.code in remaining_courses and student.level == course.level and student not in graduated_students and check_prerequist(course.code,student.university_ID):
                 combine_map['same_level'].append(student)
-                students_data['same_level'].append(student.university_ID)
+                students_data['same_level'].append(student)
                 continue
             elif course.code in fail_courses and student.university_ID not in graduated_students:
                 combine_map['fault'].append(student)
-                students_data['fault'].append(student.university_ID)
+                students_data['fault'].append(student)
                 continue
             elif course.code in conditional_courses and student.university_ID not in graduated_students:
                 combine_map['condition'].append(student)
-                students_data['condition'].append(student.university_ID)
+                students_data['condition'].append(student)
                 continue
 
             elif course.code in remaining_courses and student in graduated_students and check_prerequist(course.code,student.university_ID):
                 combine_map['graduate'].append(student)
-                students_data['graduate'].append(student.university_ID)
+                students_data['graduate'].append(student)
 
         final_map[course] = combine_map
         final_map2[course.code]= students_data

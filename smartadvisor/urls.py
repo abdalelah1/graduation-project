@@ -16,5 +16,6 @@ urlpatterns = [
     path('allcourses/',allcourses , name='allcourses'),
     path('report/',department_details , name='report'),
     path('login/',login_page , name='login'),
+    path('student_on_course/<str:course>/<str:key>',student_on_course,name='student_on_course')
 
 ]

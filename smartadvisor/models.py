@@ -3,8 +3,6 @@
 from django.db import models ,connection
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-# Create your models here.
 from django.contrib.auth.models import User
 from datetime import date,datetime
 class semester_name(models.Model):
@@ -25,6 +23,8 @@ class University_Courses (models.Model):
     is_reuqired = models.BooleanField(default=True)
     hours_condition= models.IntegerField(null=True,default=0)
     preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)
+    def __str__(self) :
+            return  str(self.code)
 
 class College(models.Model):
     name =models.CharField(max_length=50)
@@ -41,14 +41,11 @@ class Department(models.Model):
     no_required_Elecvtive=models.IntegerField()
     def __str__(self) :
             return  str(self.name)
-    
 class Major(models.Model):
     name =models.CharField(max_length=50)
     department=models.ForeignKey(Department,on_delete=models.CASCADE,null=False)
-
 class Course_Type (models.Model):
     typeOfCourse =models.CharField(max_length=50)
-
 class Course(models.Model):
     name =models.CharField(max_length=50)
     code=models.CharField(max_length=20,db_index=True)
@@ -77,8 +74,6 @@ class Course_History(models.Model):
     student=models.ForeignKey(Student,on_delete=models.CASCADE,null=False,db_index=True)
     course = models.ForeignKey(Course,on_delete=models.CASCADE,null=True,db_index=True)
     universit_course = models.ForeignKey(University_Courses,on_delete=models.CASCADE,null=True,db_index=True)
-
-
 class Advisor (models.Model):
     user= models.OneToOneField(User,on_delete=models.CASCADE,null=False)
     name =  models.CharField(max_length=50)
