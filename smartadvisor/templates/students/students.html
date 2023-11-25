@@ -1,0 +1,39 @@
+{% extends 'home/home.html'%}
+{% block content%}
+
+    <h1> students</h1>
+    <div class="report-table-container">
+        <table class="report-table">
+                        <th> # </th>
+                        <th>University Id</th>
+                        <th>Name</th>
+                        <th>Major</th>
+                        <th> GPA </th>
+                        <th> Level </th>
+                        <th>Total Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students%}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{student.university_ID}}</td>
+                        <td>{{student.name}}</td>
+                        <td>{{student.major.name}}</td>
+                        <td>{{student.GPA}}</td>
+                        <td>{{student.level.level}}</td>
+                        <td>{{student.Hours_count}}</td>
+
+                        
+                    </tr>
+                    {%endfor%}
+                    <!-- Add more rows for other data -->
+                </tbody>
+            </table>
+           
+            <br>
+            
+        </div>
+    </div> 
+
+{% endblock content%}
