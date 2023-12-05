@@ -1,39 +1,35 @@
-{% extends 'home/home.html'%}
-{% block content%}
+{% extends 'home/home.html' %}
+{% block content %}
 
-    <h1> students</h1>
+    <h1>Students</h1>
     <div class="report-table-container">
         <table class="report-table">
-                        <th> # </th>
-                        <th>University Id</th>
-                        <th>Name</th>
-                        <th>Major</th>
-                        <th> GPA </th>
-                        <th> Level </th>
-                        <th>Total Hours</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in students%}
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>University Id</th>
+                    <th>Name</th>
+                    <th>Major</th>
+                    <th>GPA</th>
+                    <th>Level</th>
+                    <th>Total Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
                     <tr>
-                        <td>{{forloop.counter}}</td>
-                        <td>{{student.university_ID}}</td>
-                        <td>{{student.name}}</td>
-                        <td>{{student.major.name}}</td>
-                        <td>{{student.GPA}}</td>
-                        <td>{{student.level.level}}</td>
-                        <td>{{student.Hours_count}}</td>
-
-                        
+                        <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url 'student_details' student.university_ID %}">{{ student.university_ID }}</a></td>
+                        <td><a href="{% url 'student_details' student.university_ID %}">{{ student.name }}</a></td>
+                        <td>{{ student.major.name }}</td>
+                        <td>{{ student.GPA }}</td>
+                        <td>{{ student.level.level }}</td>
+                        <td>{{ student.Hours_count }}</td>
                     </tr>
-                    {%endfor%}
-                    <!-- Add more rows for other data -->
-                </tbody>
-            </table>
-           
-            <br>
-            
-        </div>
-    </div> 
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+    </div>
 
-{% endblock content%}
+{% endblock content %}

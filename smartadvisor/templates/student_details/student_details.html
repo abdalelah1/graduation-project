@@ -1,0 +1,57 @@
+{% extends 'home/home.html' %}
+{% load static %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'css/student_details.css' %}">
+    <h1>Student Details</h1>
+    <p>University ID: {{ student.university_ID }}</p>
+    <p>Name: {{ student.name }}</p>
+
+    <h2>Course Details:</h2>
+
+    <div class="report">
+        <table>
+            <thead>
+                <tr>
+                    <th>Completed Courses</th>
+                    <th>Conditional Courses</th>
+                    <th>Fail Courses</th>
+                    <th>Remaining Courses</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <ul>
+                            {% for course in student_details.1 %}
+                                <li>{{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            {% for course in student_details.2 %}
+                                <li>{{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            {% for course in student_details.3 %}
+                                <li>{{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <ul>
+                            {% for course in student_details.0 %}
+                                <li>{{ course }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Include any other course-related details as needed -->
+{% endblock %}
