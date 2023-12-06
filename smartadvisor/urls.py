@@ -18,5 +18,7 @@ urlpatterns = [
     path('login/',login_page , name='login'),
     path('student_on_course/<str:course>/<str:key>',student_on_course,name='student_on_course'),
     path('help/',help , name='help'),
+    path('update_instructor/', update_instructor, name='update_instructor'),
+
 
 ]

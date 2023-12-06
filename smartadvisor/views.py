@@ -15,17 +15,18 @@ from pymongo import MongoClient
 client = MongoClient("mongodb://localhost:27017/")
 database = client["advisor"]
 # Create your views here.
+
 def test(request):
+    insertStudentMajor()
     courses_map={}
     start_time = timezone.now()
-    # map = getCourseswithstudents(1)
+    map = getCourseswithstudents(1)
     end_time = timezone.now()
     elapsed_time = end_time - start_time
     print(elapsed_time)
     collection = database["courses"]
     result = collection.find({}, {"_id": 0})
     for r in result:
-    # الوصول إلى الـ key والـ value لكل وثيقة
         for key, value in r.items():
              courses_map[key]=value    
     context={
@@ -34,12 +35,8 @@ def test(request):
     return render(request, 'test/test.html', context)
 def elective(request):
     electivemap={}
-    university_map, college_map=all_optinal_courses()
-    # client = pymongo.MongoClient("mongodb://localhost:27017/")
-    # database = client["advisor"]
-    # results_collection = database["electiveResult"]
-    # results_collection.insert_one({"elective": list(elective), "university_map": list(university_map) , "college_map":list(college_map)})
-    # client.close()
+    all_graduate_courses()
+    # university_map, college_map=all_optinal_courses()
     collection = database["elective"]
     result = collection.find({}, {"_id": 0})
     for r in result:
@@ -104,8 +101,6 @@ def courses(request):
     test_map={}
     test_map = faculity_result.find_one({}, {"_id": 0})
     
-    for key in test_map:
-        print(test_map[key])
 
     for key  in test_map:
         course = Course.objects.get(code = key)
@@ -129,12 +124,10 @@ def student_on_course (request,course , key):
     if key == 'elective':
         collection = database["elective"]
         document = collection.find_one({course: {"$exists": True}},{"_id": 0})
-        print(document)
         for i in document[course]:
             student = Student.objects.get(university_ID=i)
             list_of_student.append(student)
         getcourse = Course.objects.get(code=course )
-        print()
         context={
             'students':list_of_student,
             'course':getcourse,
@@ -152,7 +145,7 @@ def student_on_course (request,course , key):
             getcourse = Course.objects.get(code=course )
         except:
             getcourse = University_Courses.objects.get(code=course )
-        print(document)
+
         context={
             'students':list_of_student,
             'course':getcourse,
@@ -202,3 +195,9 @@ def login_page(request):
             error_message = "Invalid username or password"
             return render(request, 'login/login.html', {'error': error_message})
     return render(request, 'login/login.html')
+def update_instructor(request):
+    Course.objects.all().update(instructor=False)
+    selected_courses = request.POST.getlist('selected_courses[]')
+    Course.objects.filter(pk__in=selected_courses).update(instructor=True)
+    all_graduate_courses()
+    return render(request, 'home/home.html') 

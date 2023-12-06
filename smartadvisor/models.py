@@ -44,6 +44,8 @@ class Department(models.Model):
 class Major(models.Model):
     name =models.CharField(max_length=50)
     department=models.ForeignKey(Department,on_delete=models.CASCADE,null=False)
+    def __str__(self) :
+            return  str(self.name)    
 class Course_Type (models.Model):
     typeOfCourse =models.CharField(max_length=50)
 class Course(models.Model):
@@ -53,6 +55,7 @@ class Course(models.Model):
     credit = models.CharField(max_length=10)
     is_reuqired = models.BooleanField(default=True) #ساعات مسجلة
     majors = models.ManyToManyField(Major)
+    instructor =models.BooleanField(default=True)
     type = models.ForeignKey(Course_Type,on_delete=models.CASCADE,null=False)
     hours_condition= models.IntegerField(null=True,default=0)
     preRequst =models.ManyToManyField('self',blank=True, symmetrical=False)

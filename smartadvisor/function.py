@@ -245,12 +245,11 @@ def split_course_counts_by_conditions():
         except ObjectDoesNotExist:
             try:
                 course = University_Courses.objects.get(code=course_code)
-                print('This is a university course:', course.name, course.code,course.is_reuqired , )
 
                 is_required = course.is_reuqired  
                 # هنا يمكنك إضافة المزيد من المعالجة إذا لزم الأمر
             except ObjectDoesNotExist:
-                print('Course not found:', course_code)
+                print()
   
         if  isinstance(course, Course):
             if is_required and course_type==1:
@@ -296,7 +295,7 @@ def course_with_level(semester):
     courses =Course.objects.filter(level__in=levels,is_reuqired=True)
     uni_courses =University_Courses.objects.filter(level__in=levels,is_reuqired=True)
     all_courses = list(chain(courses, uni_courses))
-    print()
+
     for level in levels:
         condition1 = Q(level=level)
         condition2 = Q(is_reuqired=True)
@@ -323,9 +322,15 @@ def get_graduted_student():
     list_of_studnet=[]
     students=Student.objects.filter()
     for student in students :
-        if int(student.major.department.full_courses_count ) - int(student.Hours_count) <=int(student.major.department.no_hourse_Tobe_graduated):
-            graduated_student[student.university_ID]=int(student.major.department.full_courses_count ) - int(student.Hours_count) 
-            list_of_studnet.append(student)
+        if student.major :
+            if int(student.major.department.full_courses_count) == int(student.Hours_count):
+                continue
+            else:
+                if int(student.major.department.full_courses_count ) - int(student.Hours_count) <=int(student.major.department.no_hourse_Tobe_graduated):
+                    graduated_student[student.university_ID]=int(student.major.department.full_courses_count ) - int(student.Hours_count) 
+                    list_of_studnet.append(student)
+        else :
+            continue
     return graduated_student,list_of_studnet
 
 
@@ -589,8 +594,8 @@ def all_graduate_courses():
     client = MongoClient("mongodb://localhost:27017/")
     database = client["advisor"]
     collection = database["elective"]
+    collection.delete_many({})
     elective_courses=Course.objects.filter(is_reuqired=0,type=1) 
-    counter= 0
     list_of_student=[]
     map_of_elective={}
     datatoinsert=[]
@@ -598,14 +603,22 @@ def all_graduate_courses():
     for course in elective_courses :
         list_of_student=[]
         datatoinsert={}
+        print(course.code)
+        if course.instructor ==False:
+          datatoinsert[course.code]=list_of_student
+          collection.insert_one(datatoinsert)
+          continue
         for student in all_Remening.keys():
              if all_Remening[student]['elective']=='Passed' :
                 continue
-             if course.code in all_Remening[student]['elective'][1]['remaining_course']:
+             s = Student.objects.get(university_ID=student)
+             if course.code in all_Remening[student]['elective'][1]['remaining_course'] and course.majors.filter(pk=s.major.pk).exists() :
+                
                  list_of_student.append(student)
                  map_of_elective[course.code]=set(list_of_student)
         datatoinsert[course.code] = list(set(list_of_student))
         collection.insert_one(datatoinsert)
+    print('daata',datatoinsert.keys())
        
     client.close( )
     return map_of_elective
@@ -753,7 +766,7 @@ def getCourseswithstudents(semester):
                 combine_map['same_level'].append(student)
                 students_data['same_level'].append(student)
                 continue
-            elif course.code in fail_courses and student.university_ID not in graduated_students:
+            elif course.code in fail_courses and  student.university_ID not in  graduated_students:
                 combine_map['fault'].append(student)
                 students_data['fault'].append(student)
                 continue
@@ -768,22 +781,24 @@ def getCourseswithstudents(semester):
 
         final_map[course] = combine_map
         final_map2[course.code]= students_data
-        print(final_map2.keys())
+        
         collection.insert_one(final_map2)
 
     return final_map
 
             
 
-def insertStudentMajor():
-    studentFile=pd.read_excel('./static/excel/studentswithmajor.xlsx')
-    for index , row in studentFile.iterrows():
-        if not Student.objects.filter(university_ID=row['ID']).exists():
-            continue
-        else:
+def insertStudentMajor():    
+    student_count = Student.objects.filter(major__isnull=False).count()
+    # studentFile=pd.read_excel('./static/excel/studentswithmajor.xlsx')
+    # for index , row in studentFile.iterrows():
+    #     if not Student.objects.filter(university_ID=row['ID']).exists():
+    #         continue
+    #     else:
     
-            student= Student.objects.get(university_ID=row['ID'])
+    #         student= Student.objects.get(university_ID=row['ID'])
   
-            major = Major.objects.get(name = row['major'])
-            student.major=major
-            student.save()
+    #         major = Major.objects.get(name = row['major'])
+    #         student.major=major
+    #         student.save()
+
