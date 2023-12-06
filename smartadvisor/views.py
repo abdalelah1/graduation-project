@@ -201,3 +201,20 @@ def update_instructor(request):
     Course.objects.filter(pk__in=selected_courses).update(instructor=True)
     all_graduate_courses()
     return render(request, 'home/home.html') 
+def student_details(request, student_id):
+    # Retrieve the student object from the database using the student_id
+    try:
+        student = Student.objects.get(university_ID=student_id)
+    except Student.DoesNotExist:
+        # Handle the case where the student is not found
+        return render(request, 'student_details/student_not_found.html')
+
+    # Fetch details for the selected student using the function
+    student_details = get_students_details(student_id)
+
+    # Pass the student object and their details to the template
+    context = {
+        'student': student,
+        'student_details': student_details,
+    }
+    return render(request, 'student_details/student_details.html', context)

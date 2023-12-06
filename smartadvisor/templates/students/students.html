@@ -21,13 +21,13 @@
             <table class="report-table">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Major</th>  
-                        <th>Com Hours</th>
-                        <th>Level</th>
-                        <th>GPA</th>
+                        <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url 'student_details' student.university_ID %}">{{ student.university_ID }}</a></td>
+                        <td><a href="{% url 'student_details' student.university_ID %}">{{ student.name }}</a></td>
+                        <td>{{ student.major.name }}</td>
+                        <td>{{ student.GPA }}</td>
+                        <td>{{ student.level.level }}</td>
+                        <td>{{ student.Hours_count }}</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -49,40 +49,43 @@
         </div>
     </div> 
     </div>
+ 
     {% else %}
-        <h1>Students</h1>
-        <input type="text" id="searchInput" placeholder="Search by name or ID">
-        <div class="report-table-container">
-            <table class="report-table">
-                <thead>
+    <h1>Students</h1>
+    <input type="text" id="searchInput" placeholder="Search by name or ID">
+    <div class="report-table-container">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Major</th>
+                    <th>Level</th>
+                    <th>Com Hours</th>
+                    <th>GPA</th>
+                    <th>Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
                     <tr>
-                        <th>#</th>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Major</th>
-                        <th>Level</th>
-                        <th>Com Hours</th>
-                        <th>GPA</th>
-                        <th>Level</th>
-
+                        <td>{{ forloop.counter }}</td>
+                        <!-- Place the anchor tags within the loop -->
+                        <td><a href="{% url 'student_details' student.university_ID %}">{{ student.university_ID }}</a></td>
+                        <td><a href="{% url 'student_details' student.university_ID %}">{{ student.name }}</a></td>
+                        <td>{{ student.major.name }}</td>
+                        <td>{{ student.Hours_count }}</td>
+                        <td>{{ student.level.level }}</td>
+                        <td>{{ student.GPA }}</td>
+                        <!-- Add other table data -->
                     </tr>
-                </thead>
-                <tbody>
-                    {% for student in students %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ student.university_ID }}</td>
-                            <td>{{ student.name }}</td>
-                            <td>{{ student.major.name }}</td>
-                            <td>{{ student.Hours_count }}</td>
-                            <td>{{ student.level.level }}</td>
-                            <td>{{ student.GPA }}</td>
-                        </tr>
-                    {% endfor %}
-                    <!-- Add more rows for other data -->
-                </tbody>
-            </table>
-            <br>
+                {% endfor %}
+                <!-- Add more rows for other data -->
+            </tbody>
+        </table>
+        <br>
+    </div>
         </div>
         {%endif%}
     </div>
