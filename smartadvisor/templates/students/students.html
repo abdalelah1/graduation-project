@@ -2,6 +2,7 @@
 {% block content %}
 
     <h1>Students</h1>
+    <input type="text" id="searchInput" placeholder="Search by name or ID">
     <div class="report-table-container">
         <table class="report-table">
             <thead>
@@ -29,6 +30,48 @@
                 {% endfor %}
             </tbody>
         </table>
+        <script>
+            console.log('from search')
+            document.addEventListener('DOMContentLoaded', function () {
+                const searchInput = document.getElementById('searchInput');
+                const rows = document.querySelectorAll('.report-table tbody tr');
+    
+                searchInput.addEventListener('input', function () {
+                    const searchTerm = searchInput.value.toLowerCase();
+    
+                    rows.forEach(function (row) {
+                        const nameColumn = row.querySelector('td:nth-child(3)'); // Assuming name is in the third column
+                        const idColumn = row.querySelector('td:nth-child(2)'); // Assuming ID is in the second column
+    
+                        const name = nameColumn.textContent.toLowerCase();
+                        const id = idColumn.textContent.toLowerCase();
+    
+                        if (name.includes(searchTerm) || id.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        </script>
+        <style>
+            /* Style for the search input */
+            #searchInput {
+                padding: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-sizing: border-box;
+                width: 200px;
+                /* Add more styles as needed */
+            }
+    
+            /* Style for the table */
+            .report-table {
+                /* Add your table styles here */
+            }
+        </style>
         <br>
     </div>
 

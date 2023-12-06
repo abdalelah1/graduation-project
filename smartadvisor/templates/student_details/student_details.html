@@ -7,8 +7,39 @@
     <p>University ID: {{ student.university_ID }}</p>
     <p>Name: {{ student.name }}</p>
 
-    <h2>Course Details:</h2>
-
+    <h2>Student  Details:</h2>
+    <div class="course-details">
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Credit</th>
+                    <th>Same Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>EMX12122</td>
+                    <td>جبر خطي</td>
+                    <td>4</td>
+                    <td>T</td>
+                </tr>
+            </tbody>
+            <tbody>
+                <!-- Loop through course details to populate the table -->
+                {% for course_detail in course_details %}
+                    <tr>
+                        <td>{{ course_detail.code }}</td>
+                        <td>{{ course_detail.name }}</td>
+                        <td>{{ course_detail.credit }}</td>
+                        <td>{{ course_detail.same_level }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     <div class="report">
         <table>
             <thead>

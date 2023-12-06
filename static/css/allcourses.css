@@ -1,0 +1,49 @@
+/* custom-table-styles.css */
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f8f8;
+    color: #212112;
+    margin: 0;
+    padding: 0;
+}
+
+/* Styling for the report table */
+.report {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+table.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+table.report-table th,
+table.report-table td {
+    padding: 12px;
+    text-align: left;
+}
+
+table.report-table th {
+    background-color: #14a5a3;
+    color: white;
+}
+
+table.report-table td {
+    background-color: #f8f8f8;
+}
+
+table.report-table ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+table.report-table ul li {
+    margin-bottom: 8px;
+}
