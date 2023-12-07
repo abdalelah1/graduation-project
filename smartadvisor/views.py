@@ -9,7 +9,6 @@ from django.contrib.auth import authenticate, login ,logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 
-
 from pymongo import MongoClient
 
 client = MongoClient("mongodb://localhost:27017/")
@@ -84,8 +83,13 @@ def major(request):
 def welcome(request):
     return render (request,'welcome/welcome.html')
 def help(request):
-    return render (request,'help/help.html')
-
+    if request.method == 'POST' and request.FILES.get('excelFile'):
+        uploaded_file = request.FILES['excelFile']
+        with open('static/excel/' + uploaded_file.name, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+        return render(request, 'help/help.html', {'uploaded_success': True})
+    return render(request, 'help/help.html')
 def student_details(request, student_id):
     # Retrieve the student object from the database using the student_id
     try:
@@ -137,3 +141,7 @@ def login_page(request):
             error_message = "Invalid username or password"
             return render(request, 'login/login.html', {'error': error_message})
     return render(request, 'login/login.html')
+    import pandas as pd
+
+
+

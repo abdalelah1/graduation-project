@@ -5,10 +5,13 @@
 <html lang="en">
 <head>
     <link rel="stylesheet" href="{% static 'css/help.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>Upload Excel File</title>
 </head>
 <body>
+
     <div class="container">
+        
         <img src="{% static 'images/screen major.png' %}"  class="main-image">
         <div class="excel-description">
             <p class="description-text">Please upload an Excel file containing the following information:</p>
@@ -18,11 +21,49 @@
                 <li>Degree</li>
                 <li>Major</li>
             </ul>
+            <div><p>*********************************************************</p> </div>
+            <div <div class="col-md-6 mb-3 d-flex justify-content-center">
+                <label for="SemesterLevel" class="form-label">Semester Level:</label>
+                <select class="form-select custom-select" id="SemesterLevel" name="SemesterLevel" required>
+                    <option value="1">1.1</option>
+                    <option value="2">1.2</option>
+                    <option value="3">2.1</option>
+                    <option value="4">2.2</option>
+                    <option value="5">3.1</option>
+                    <option value="6">3.2</option>
+                    <option value="7">4.1</option>
+                    <option value="8">4.2</option>
+                    <option value="9">5.1</option>
+                    <option value="10">5.2</option>
+                </select>
+            </div>
+            <button type="submit" class="submit-button">
+            <i class="fas fa-check-circle fa-lg"></i> <!-- Change 'fa-lg' to adjust the size -->
+            Run Algorithm
+        </button>
+        <div><p>*********************************************************</p> </div>
         </div>
+        
+        {% if uploaded_success %}
+            <p class="upload-success">File uploaded successfully!</p>
+        {% endif %}
+       <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="container">
+        <!-- Your existing HTML content -->
         <div class="file-input">
             <input type="file" accept=".xlsx, .xls" id="excelFile" name="excelFile" class="custom-file-input">
             <label for="excelFile" class="file-label">Upload Excel File</label>
         </div>
+        <div><p>*********************************************************</p> </div>
+        <div class="button-container">
+            
+            <div class="button-space"></div>
+            <button type="submit" class="submit-button"><i class="fas fa-check-circle"></i> Submit</button>
+
+        </div>
+    </div>
+</form>
     </div>
 </body>
 </html>
