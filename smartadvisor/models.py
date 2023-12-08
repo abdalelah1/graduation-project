@@ -54,7 +54,7 @@ class Course(models.Model):
     level = models.ForeignKey(Level,on_delete=models.CASCADE,null=False)
     credit = models.CharField(max_length=10)
     is_reuqired = models.BooleanField(default=True) #ساعات مسجلة
-    majors = models.ManyToManyField(Major)
+    majors = models.ManyToManyField(Major , blank=True)
     instructor =models.BooleanField(default=True)
     type = models.ForeignKey(Course_Type,on_delete=models.CASCADE,null=False)
     hours_condition= models.IntegerField(null=True,default=0)

@@ -27,7 +27,10 @@ SECRET_KEY = 'django-insecure-=7pr#va^ck5&i%z5%dbysck@+k2j3ud4_x!frefb)vc3(+vhf8
 DEBUG = True
 
 ALLOWED_HOSTS = []
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+ # Define the URL to access the uploaded files
+MEDIA_URL = '/media/'
 
 # Application definition
 

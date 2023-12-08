@@ -17,11 +17,23 @@ database = client["advisor"]
 # Create your views here.
 
 def test(request):
-    insertStudentMajor()
+    all_course_names=[]
+    # insertStudentMajor()
     courses_map={}
     start_time = timezone.now()
     map = getCourseswithstudents(1)
+#     for student in Student.objects.all():
+#         remaining_courses,_,_,_,_,_= get_students_details(student.university_ID)
+#         all_course_names.extend(remaining_courses)
+#     course_counter = Counter(all_course_names)
+#     counter = 0 
+# # التحقق من أسماء المواد التي تكررت على الأقل 20 مرة
+#     for course, count in course_counter.items():
+#         if count >= 20:
+#             print(f" {counter} The course {course} is needed by at least 20 students.{count}")
+#             counter =counter+1
     end_time = timezone.now()
+    print(len(all_course_names))
     elapsed_time = end_time - start_time
     print(elapsed_time)
     collection = database["courses"]
@@ -166,6 +178,7 @@ def students(request):
     user = request.user
     
     students = Student.objects.filter(major__department=user.advisor.department )
+    print(len(students))
     context={}
     context={
         'students':students
@@ -202,19 +215,78 @@ def update_instructor(request):
     all_graduate_courses()
     return render(request, 'home/home.html') 
 def student_details(request, student_id):
-    # Retrieve the student object from the database using the student_id
+    student2= Student.objects.get(university_ID=201810098)
+    coursess= Course.objects.get(code='ENIT4315')
+    remaining_courses, completed_courses, conditional_courses, fail_courses, _, optional_map = get_students_details(student2.university_ID)
+    if coursess.code in remaining_courses and  student2.level != coursess.level and check_prerequist(coursess.code,student2.university_ID) and int(student2.Hours_count) >= int(coursess.hours_condition):
+        print(True,True)
+    print('preREquistis',check_prerequist('ENIT4315',201810098))
     try:
         student = Student.objects.get(university_ID=student_id)
     except Student.DoesNotExist:
-        # Handle the case where the student is not found
         return render(request, 'student_details/student_not_found.html')
 
-    # Fetch details for the selected student using the function
-    student_details = get_students_details(student_id)
+    remaining_courses_for_student , completed_courses , conditional_courses,fail_courses ,fail_passed,optional_map= get_students_details(student_id)
 
-    # Pass the student object and their details to the template
+    for key in optional_map:
+        if optional_map[key]=='Passed':
+            continue
+        remaining_courses_for_student=remaining_courses_for_student+optional_map[key][1]['remaining_course']
+    
+    print(len(remaining_courses_for_student))
+    filtered_courses = []
+
+    for index, course_code in enumerate(remaining_courses_for_student):
+        course=None
+        try :
+            course = Course.objects.get(code=course_code)
+            if not course.is_reuqired and course.type.id == 1 and student.major not in course.majors.all():
+               print(course.name, True)
+            else:
+                filtered_courses.append(course)
+
+        except :
+          course=  University_Courses.objects.get(code=course_code)
+          filtered_courses.append(course)
+          continue
+      
+    # الآن يمكنك استخدام filtered_courses كقائمة جديدة
+    remaining_courses_for_student = filtered_courses
+    conditional_courses = list(conditional_courses)
+    fail_courses = list(fail_courses)
+    completed_courses=list(completed_courses)
+
+    # تحديث العناصر في القوائم
+    for index, course_code in enumerate(conditional_courses):
+        course=None
+        try :
+             course = Course.objects.get(code=course_code)
+        except :
+          course=  University_Courses.objects.get(code=course_code)
+        conditional_courses[index] = course
+    for index, course_code in enumerate(fail_courses):
+        course=None
+        try :
+             course = Course.objects.get(code=course_code)
+        except :
+          course=  University_Courses.objects.get(code=course_code)
+        fail_courses[index] = course
+    for index, course_code in enumerate(completed_courses):
+        course=None
+        try :
+             course = Course.objects.get(code=course_code)
+        except :
+          course=  University_Courses.objects.get(code=course_code)
+        completed_courses[index] = course
+    same_level,less_level=get_recomended_for_student(student_id,remaining_courses_for_student)
+    print(remaining_courses_for_student)
     context = {
-        'student': student,
-        'student_details': student_details,
-    }
+        'same_level':same_level,
+        'less_level':less_level,
+        'student': student, 
+        'remaining_courses_for_student': remaining_courses_for_student,
+        'completed_courses':completed_courses,
+        'conditional_courses':conditional_courses,
+        'fail_courses':fail_courses,
+      }
     return render(request, 'student_details/student_details.html', context)

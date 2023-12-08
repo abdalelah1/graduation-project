@@ -8,6 +8,7 @@ admin.site.register(University)
 admin.site.register(College)
 admin.site.register(Course)
 admin.site.register(Student)
+admin.site.register(University_Courses)
 # تعديل موديل المستخدم لإضافة InlineModelAdmin
 
 # ModelAdmin لنموذج المشرف
