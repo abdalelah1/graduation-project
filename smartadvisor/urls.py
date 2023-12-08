@@ -18,4 +18,6 @@ urlpatterns = [
     path('report/',department_details , name='report'),
     path('login/',login_page , name='login'),
     path('student-details/<str:student_id>/',student_details, name='student_details'),
+    path('major/',save_major, name='save_major'),
+    path('major/',save_course, name='save_course'),
      ]

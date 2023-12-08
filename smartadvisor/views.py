@@ -143,5 +143,24 @@ def login_page(request):
     return render(request, 'login/login.html')
     import pandas as pd
 
+def save_major(request):
+    if request.method == 'POST':
+        major_name = request.POST.get('majorName')
+        # Validate the data if needed
+        Major.objects.create(name=major_name)
+        return render(request, 'major/major.html')  # Render a success page after saving the major
 
+def save_course(request):
+    if request.method == 'POST':
+        course_name = request.POST.get('courseName')
+        course_code = request.POST.get('courseCode')
+        course_level = request.POST.get('courseLevel')
+        courseCredit=request.POST.get('courseCredit')
+        type=request.POST.get('coursetype')
+        courseRequired=request.POST.get('courseRequired')
+        hoursCondition=request.POST.get('hoursCondition')
+        major_id = request.POST.get('majorId')  # Consider adding a hidden input field to store major ID
+        major = Major.objects.get(pk=major_id)
+        Course.objects.create(name=course_name, code=course_code, major=major,level=course_level,credit=courseCredit,is_reuqired= courseRequired,type=type,hours_condition=hoursCondition)
+        return render(request, 'major/major.html')
 
